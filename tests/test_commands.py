@@ -7,8 +7,8 @@ import sys
 import tempfile
 import unittest
 import torch
-from train import run as train
-from evaluate import run as evaluate
+from train import main as train
+from evaluate import main as evaluate
 from utils import atomic_json,file_hash
 
 

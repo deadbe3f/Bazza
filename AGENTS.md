@@ -54,3 +54,6 @@ Active config/launchers must use BAZZA_* roots rather than machine-specific
 paths. Keep local overrides in an explicitly loaded, Git-ignored .env.local.
 Forward declared roots into containers, mount inputs read-only, and never
 create missing input roots as a side effect of Docker bind mounts.
+
+Entrypoints expose `main(args)`. Parse CLI arguments inside the
+`if __name__ == "__main__":` block, then call `main(args)`.

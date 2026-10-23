@@ -12,7 +12,7 @@ from systemone import SystemOne
 from utils import atomic_json, digest, file_hash, job_lock
 
 
-def run(args):
+def main(args):
     request = json.loads(args.request.read_text())
     if set(request) != {'state', 'questions'}:
         raise ValueError('Request requires exactly state and questions')
@@ -88,7 +88,7 @@ def run(args):
     return result
 
 
-def main():
+if __name__ == "__main__":
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--checkpoint', type=Path, required=True)
     parser.add_argument('--backbone-path', type=Path)
@@ -99,7 +99,5 @@ def main():
     parser.add_argument('--output-dir', type=Path)
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--plan-only', action='store_true')
-    run(parser.parse_args())
-
-
-if __name__=='__main__':main()
+    args = parser.parse_args()
+    main(args)

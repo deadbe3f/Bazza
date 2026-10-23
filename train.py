@@ -16,7 +16,7 @@ from trainer import Trainer
 from utils import atomic_json, file_hash, job_lock
 
 
-def run(args):
+def main(args):
     config=load_config(args.config)
     selection,backbone,identity=prepare(config,args.device,settings_path=args.config)
     torch.set_num_threads(config.cpu_threads)
@@ -87,7 +87,7 @@ def run(args):
             if summary['phase']=='completed':
                 atomic_json(directory/'complete.json',summary)
                 if config.test_config_path:
-                    from evaluate import run as evaluate
+                    from evaluate import main as evaluate
                     retained=json.loads((directory/'checkpoints.json').read_text())['checkpoints']
                     if not retained:raise ValueError('Automatic test requires a validation-selected checkpoint')
                     best=retained[0];test_dir=directory/'test'
@@ -112,7 +112,7 @@ def run(args):
             for sig,handler in previous_handlers.items():signal.signal(sig,handler)
 
 
-def main():
+if __name__ == "__main__":
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config',type=Path,default=Path(__file__).with_name('config.py'))
     parser.add_argument('--output-dir',type=Path,required=True)
@@ -121,7 +121,5 @@ def main():
     parser.add_argument('--initialize-from',type=Path)
     parser.add_argument('--plan-only',action='store_true')
     parser.add_argument('--no-progress',action='store_true')
-    run(parser.parse_args())
-
-
-if __name__=='__main__':main()
+    args = parser.parse_args()
+    main(args)

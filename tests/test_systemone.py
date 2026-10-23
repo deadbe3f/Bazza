@@ -12,7 +12,7 @@ from unittest.mock import patch
 import torch
 from tokenizers import Tokenizer, models, pre_tokenizers
 from data import encode
-from demo import run as demo
+from demo import main as demo
 from model import Bazza, BazzaDecisionHead, Gemma4, gemma
 from systemone import SystemOne
 from utils import atomic_json, file_hash

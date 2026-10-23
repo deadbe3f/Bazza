@@ -17,7 +17,7 @@ def input_identity(row):
     return digest({k: row.get(k) for k in ("id", "ids", "positions", "options", "order", "target")})
 
 
-def run(args):
+def main(args):
     config = load_config(args.config)
     selection, backbone, identity = prepare(config, args.device, settings_path=args.config)
     rows = selection["splits"][args.split]
@@ -112,18 +112,15 @@ def run(args):
                 signal.signal(sig, handler)
 
 
-def parser():
-    result = argparse.ArgumentParser(description=__doc__)
-    result.add_argument("--config", type=Path, default=Path(__file__).with_name("config.py"))
-    result.add_argument("--checkpoint", type=Path, required=True)
-    result.add_argument("--output-dir", type=Path, required=True)
-    result.add_argument("--split", default="test")
-    result.add_argument("--device", default="cuda")
-    result.add_argument("--resume", action="store_true")
-    result.add_argument("--plan-only", action="store_true")
-    result.add_argument("--no-progress", action="store_true")
-    return result
-
-
 if __name__ == "__main__":
-    run(parser().parse_args())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", type=Path, default=Path(__file__).with_name("config.py"))
+    parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--split", default="test")
+    parser.add_argument("--device", default="cuda")
+    parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--plan-only", action="store_true")
+    parser.add_argument("--no-progress", action="store_true")
+    args = parser.parse_args()
+    main(args)
