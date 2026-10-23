@@ -1,0 +1,3 @@
+-r requirements.txt
+huggingface_hub
+pyarrow

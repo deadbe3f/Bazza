@@ -1,0 +1,939 @@
+{
+  "version": "0.1",
+  "created": "2026-10-11",
+  "purpose": "Standalone source datasets before Groundbeef v0.3 integration",
+  "sources": [
+    {
+      "name": "gsm8k",
+      "repo": "openai/gsm8k",
+      "revision": "740312add88f781978c0658806c59bc2815b9866",
+      "category": "math",
+      "adapter": "gsm",
+      "license": [
+        "mit"
+      ],
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/openai/gsm8k/resolve/740312add88f781978c0658806c59bc2815b9866/README.md",
+          "sha256": "a17e882503578c9e324560630e31017617714ee025c87cf4fea6fd916895f3c1"
+        },
+        {
+          "path": "main/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/openai/gsm8k/resolve/740312add88f781978c0658806c59bc2815b9866/main/test-00000-of-00001.parquet",
+          "sha256": "ee7b8da9e381df27b9e3f7758a159ab2bdaa4dbaa910546cbbc47e0cb44e4f59"
+        },
+        {
+          "path": "main/train-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/openai/gsm8k/resolve/740312add88f781978c0658806c59bc2815b9866/main/train-00000-of-00001.parquet",
+          "sha256": "ea82612ea9582142387730c793eb67d3b12849002bc0b7fa6f8efafa7351419d"
+        }
+      ]
+    },
+    {
+      "name": "mathqa",
+      "repo": "allenai/math_qa",
+      "revision": "c4f1cc784c04c4957b50c97858f23893b633eea6",
+      "category": "math",
+      "adapter": "mathqa",
+      "license": [
+        "apache-2.0"
+      ],
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/allenai/math_qa/resolve/c4f1cc784c04c4957b50c97858f23893b633eea6/README.md",
+          "sha256": "8051c9a1e42245600985ff1b890dfe3ecce804c47555d83ca7a02a2e3f4b4cc2"
+        },
+        {
+          "path": "MathQA.zip",
+          "url": "https://math-qa.github.io/math-QA/data/MathQA.zip",
+          "sha256": "7344f30456a7aef3176d4866cc953b35b41bec44eda6b00cdbcfde2876b2f07a"
+        }
+      ]
+    },
+    {
+      "name": "aqua",
+      "repo": "deepmind/aqua_rat",
+      "revision": "33301c6a050c96af81f63cad5562cb5363e88971",
+      "category": "math",
+      "adapter": "aqua",
+      "license": [
+        "apache-2.0"
+      ],
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/deepmind/aqua_rat/resolve/33301c6a050c96af81f63cad5562cb5363e88971/README.md",
+          "sha256": "4c942c196ece73603d17ddb4cdc4ef4f24f527c7e23c5d22668b9d5952545dc8"
+        },
+        {
+          "path": "raw/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/deepmind/aqua_rat/resolve/33301c6a050c96af81f63cad5562cb5363e88971/raw/test-00000-of-00001.parquet",
+          "sha256": "3bb85756cac23fe0b0aba0b9fd0567a73f075d5aa5511b8bd7499d1cd8dbb4d1"
+        },
+        {
+          "path": "raw/train-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/deepmind/aqua_rat/resolve/33301c6a050c96af81f63cad5562cb5363e88971/raw/train-00000-of-00001.parquet",
+          "sha256": "b9e0ee4d72661e3d00002553fb210938f50528b42cc72809fde18b8119c96778"
+        },
+        {
+          "path": "raw/validation-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/deepmind/aqua_rat/resolve/33301c6a050c96af81f63cad5562cb5363e88971/raw/validation-00000-of-00001.parquet",
+          "sha256": "99605f7d8e5b322445e6585cf6f1d0144f7e8e6f1e2f99672d40dc53fd3e61f5"
+        }
+      ]
+    },
+    {
+      "name": "arc-challenge",
+      "repo": "allenai/ai2_arc",
+      "revision": "210d026faf9955653af8916fad021475a3f00453",
+      "category": "science",
+      "adapter": "arc",
+      "license": [
+        "cc-by-sa-4.0"
+      ],
+      "files": [
+        {
+          "path": "ARC-Challenge/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/ai2_arc/resolve/210d026faf9955653af8916fad021475a3f00453/ARC-Challenge/test-00000-of-00001.parquet",
+          "sha256": "62f03257e737aed263f55c6abf87c7bb0028a44a6bdd2a26eb1279eb42c1d1e9"
+        },
+        {
+          "path": "ARC-Challenge/train-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/ai2_arc/resolve/210d026faf9955653af8916fad021475a3f00453/ARC-Challenge/train-00000-of-00001.parquet",
+          "sha256": "e488c1587ffdcfc8443f916c53488a95cd471c5790e0746c6bfe4cecf20962cb"
+        },
+        {
+          "path": "ARC-Challenge/validation-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/ai2_arc/resolve/210d026faf9955653af8916fad021475a3f00453/ARC-Challenge/validation-00000-of-00001.parquet",
+          "sha256": "395a5c88d1580d69855fbaee9450270578df1ad5af6259771cd0a42c20e99f05"
+        },
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/allenai/ai2_arc/resolve/210d026faf9955653af8916fad021475a3f00453/README.md",
+          "sha256": "4a293e352253d771604725c978adcea71ee6504e89ed40e1cb0024ecafa9b37e"
+        }
+      ]
+    },
+    {
+      "name": "arc-easy",
+      "repo": "allenai/ai2_arc",
+      "revision": "210d026faf9955653af8916fad021475a3f00453",
+      "category": "science",
+      "adapter": "arc",
+      "license": [
+        "cc-by-sa-4.0"
+      ],
+      "files": [
+        {
+          "path": "ARC-Easy/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/ai2_arc/resolve/210d026faf9955653af8916fad021475a3f00453/ARC-Easy/test-00000-of-00001.parquet",
+          "sha256": "4160597d618ae851c7eb04e281574f3f654776216ac6b6641588d64527b47177"
+        },
+        {
+          "path": "ARC-Easy/train-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/ai2_arc/resolve/210d026faf9955653af8916fad021475a3f00453/ARC-Easy/train-00000-of-00001.parquet",
+          "sha256": "b315db8a4be597dc7daa50a4e70d48dd7c990c32085629e6ccd8c926beaa80b5"
+        },
+        {
+          "path": "ARC-Easy/validation-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/ai2_arc/resolve/210d026faf9955653af8916fad021475a3f00453/ARC-Easy/validation-00000-of-00001.parquet",
+          "sha256": "ed890ff1e4cef7a7140d3a30dcea3ed2c9d467c6458f447ad9ef0176d8dcbb74"
+        },
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/allenai/ai2_arc/resolve/210d026faf9955653af8916fad021475a3f00453/README.md",
+          "sha256": "4a293e352253d771604725c978adcea71ee6504e89ed40e1cb0024ecafa9b37e"
+        }
+      ]
+    },
+    {
+      "name": "openbookqa",
+      "repo": "allenai/openbookqa",
+      "revision": "388097ea7776314e93a529163e0fea805b8a6454",
+      "category": "science",
+      "adapter": "openbook",
+      "license": [
+        "unknown"
+      ],
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/allenai/openbookqa/resolve/388097ea7776314e93a529163e0fea805b8a6454/README.md",
+          "sha256": "a58e68a31e20e7cbac02f80f44f3282ffbb8a40aeb20488670e5ffa975687960"
+        },
+        {
+          "path": "main/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/openbookqa/resolve/388097ea7776314e93a529163e0fea805b8a6454/main/test-00000-of-00001.parquet",
+          "sha256": "cd5483e366daa230c1c87bbdc512d8b7229f14f6dd04d19fc8b1a3855aaaa8a3"
+        },
+        {
+          "path": "main/train-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/openbookqa/resolve/388097ea7776314e93a529163e0fea805b8a6454/main/train-00000-of-00001.parquet",
+          "sha256": "98148f8a54e62eb862346a75192d5fb824d6cbb68f2f59aecd793d39ecb5cd8b"
+        },
+        {
+          "path": "main/validation-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/openbookqa/resolve/388097ea7776314e93a529163e0fea805b8a6454/main/validation-00000-of-00001.parquet",
+          "sha256": "35370b9cfee8c1ff325ccc74adc434d12c47ca0ac3244aa87f3fa77069285206"
+        }
+      ]
+    },
+    {
+      "name": "sciq",
+      "repo": "allenai/sciq",
+      "revision": "2c94ad3e1aafab77146f384e23536f97a4849815",
+      "category": "science",
+      "adapter": "sciq",
+      "license": [
+        "cc-by-nc-3.0"
+      ],
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/allenai/sciq/resolve/2c94ad3e1aafab77146f384e23536f97a4849815/README.md",
+          "sha256": "f16f71b220a0e205672f6f0c8afb40e37f7a158541f759593745fe52162f8ad8"
+        },
+        {
+          "path": "data/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/sciq/resolve/2c94ad3e1aafab77146f384e23536f97a4849815/data/test-00000-of-00001.parquet",
+          "sha256": "3a719356a29b127fc54ef3c7f51a034db4bd105d5717215e8c85d2aa58d60667"
+        },
+        {
+          "path": "data/train-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/sciq/resolve/2c94ad3e1aafab77146f384e23536f97a4849815/data/train-00000-of-00001.parquet",
+          "sha256": "19644360954006d06e9ad3df07bddb34f8535c081b831d48f604603c713ac167"
+        },
+        {
+          "path": "data/validation-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/sciq/resolve/2c94ad3e1aafab77146f384e23536f97a4849815/data/validation-00000-of-00001.parquet",
+          "sha256": "455dd9f1d725cd3ecbce369799a2fbbdbbfecf51ab84a86d56ba3370dc847b8a"
+        }
+      ]
+    },
+    {
+      "name": "commonsenseqa",
+      "repo": "tau/commonsense_qa",
+      "revision": "94630fe30dad47192a8546eb75f094926d47e155",
+      "category": "commonsense",
+      "adapter": "csqa",
+      "license": [
+        "mit"
+      ],
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/tau/commonsense_qa/resolve/94630fe30dad47192a8546eb75f094926d47e155/README.md",
+          "sha256": "172917e887dcc013fe0f0bd6aa8c810aea1e2be67d3bc7ff63e9b9d92075cc34"
+        },
+        {
+          "path": "data/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/tau/commonsense_qa/resolve/94630fe30dad47192a8546eb75f094926d47e155/data/test-00000-of-00001.parquet",
+          "sha256": "19efe93223d1712397aaa44b3adc07f4fa50349206a611ca4f33afbec661fa5e"
+        },
+        {
+          "path": "data/train-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/tau/commonsense_qa/resolve/94630fe30dad47192a8546eb75f094926d47e155/data/train-00000-of-00001.parquet",
+          "sha256": "b0449767ed986bfc2ca52b1244a46ef12f732756727f3cb0a4ab69ac8b3d282b"
+        },
+        {
+          "path": "data/validation-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/tau/commonsense_qa/resolve/94630fe30dad47192a8546eb75f094926d47e155/data/validation-00000-of-00001.parquet",
+          "sha256": "bdbd9bf9cc4d2349b24901038b2ab2f58e10e4e507ad2fd425dca55cd3cb6660"
+        }
+      ]
+    },
+    {
+      "name": "winogrande",
+      "repo": "allenai/winogrande",
+      "revision": "01e74176c63542e6b0bcb004dcdea22d94fb67b5",
+      "category": "commonsense",
+      "adapter": "wino",
+      "license": "not-stated",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/allenai/winogrande/resolve/01e74176c63542e6b0bcb004dcdea22d94fb67b5/README.md",
+          "sha256": "fd653689cc77706672b40cd040156ad57f4969656d25a14be645cffa8ef55176"
+        },
+        {
+          "path": "winogrande_xl/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/winogrande/resolve/01e74176c63542e6b0bcb004dcdea22d94fb67b5/winogrande_xl/test-00000-of-00001.parquet",
+          "sha256": "100885ec03a67f318d50f8a485cb7e55c9ed88fcefbc565c2907fc98de7f8444"
+        },
+        {
+          "path": "winogrande_xl/train-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/winogrande/resolve/01e74176c63542e6b0bcb004dcdea22d94fb67b5/winogrande_xl/train-00000-of-00001.parquet",
+          "sha256": "5d8c38ad12b9a6c88f79b6e00aaf0f40781f93d4f94816f6cff2b67625d67399"
+        },
+        {
+          "path": "winogrande_xl/validation-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/allenai/winogrande/resolve/01e74176c63542e6b0bcb004dcdea22d94fb67b5/winogrande_xl/validation-00000-of-00001.parquet",
+          "sha256": "f9d914d1818c0aba98cabdf8af2bc4bd943c462b9c5e7062647e05c2ce3315d1"
+        }
+      ]
+    },
+    {
+      "name": "hellaswag",
+      "repo": "Rowan/hellaswag",
+      "revision": "218ec52e09a7e7462a5400043bb9a69a41d06b76",
+      "category": "commonsense",
+      "adapter": "hella",
+      "license": "not-stated",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/Rowan/hellaswag/resolve/218ec52e09a7e7462a5400043bb9a69a41d06b76/README.md",
+          "sha256": "cfe6e26e7e936a447a12f7eee50f2bffb0355c3b97459496d8c7296f65c5b353"
+        },
+        {
+          "path": "data/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/Rowan/hellaswag/resolve/218ec52e09a7e7462a5400043bb9a69a41d06b76/data/test-00000-of-00001.parquet",
+          "sha256": "e572fd5579bd1768b1985f47234f8bbe29247aca200a778b635bffc637714a41"
+        },
+        {
+          "path": "data/train-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/Rowan/hellaswag/resolve/218ec52e09a7e7462a5400043bb9a69a41d06b76/data/train-00000-of-00001.parquet",
+          "sha256": "cacb12587faa63d7f723a72d61d12bfa94b140446f5a6a0a2e1c6906ab88bf02"
+        },
+        {
+          "path": "data/validation-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/Rowan/hellaswag/resolve/218ec52e09a7e7462a5400043bb9a69a41d06b76/data/validation-00000-of-00001.parquet",
+          "sha256": "899813071e1e95efafec90f856e1987d2150fa4d020fc005df6962c259f660cd"
+        }
+      ]
+    },
+    {
+      "name": "mmlu",
+      "repo": "cais/mmlu",
+      "revision": "c30699e8356da336a370243923dbaf21066bb9fe",
+      "category": "knowledge",
+      "adapter": "mmlu",
+      "license": [
+        "mit"
+      ],
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/cais/mmlu/resolve/c30699e8356da336a370243923dbaf21066bb9fe/README.md",
+          "sha256": "665eef35ecd8a89037c1e4f1e1a0d7fd4c154edc04c81cea5634ace2d3e96953"
+        },
+        {
+          "path": "all/auxiliary_train-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/cais/mmlu/resolve/c30699e8356da336a370243923dbaf21066bb9fe/all/auxiliary_train-00000-of-00001.parquet",
+          "sha256": "5126bb35f06c8ab7ac54be3c60ab02cf33adf8b93a79dcfeb071f53cac74efde"
+        },
+        {
+          "path": "all/dev-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/cais/mmlu/resolve/c30699e8356da336a370243923dbaf21066bb9fe/all/dev-00000-of-00001.parquet",
+          "sha256": "2b19bde1ed8ca6b482fb283abc90e8e0d9d228947029c0b91795d64b28b3bc3f"
+        },
+        {
+          "path": "all/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/cais/mmlu/resolve/c30699e8356da336a370243923dbaf21066bb9fe/all/test-00000-of-00001.parquet",
+          "sha256": "74a41822ce7d3def56e1682f958469c04642a5336a5ce912fa375fdb90fb25d7"
+        },
+        {
+          "path": "all/validation-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/cais/mmlu/resolve/c30699e8356da336a370243923dbaf21066bb9fe/all/validation-00000-of-00001.parquet",
+          "sha256": "66cdf0b090ccb657d18d13cd81e31fdc55c3467da9642ffb178653268a97c8ef"
+        }
+      ]
+    },
+    {
+      "name": "mmlu-pro-protected",
+      "repo": "TIGER-Lab/MMLU-Pro",
+      "revision": "b189ec765aa7ed75c8acfea42df31fdae71f97be",
+      "category": "knowledge",
+      "adapter": "protected",
+      "license": "mit",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro/resolve/b189ec765aa7ed75c8acfea42df31fdae71f97be/README.md",
+          "sha256": "4bd710f67da3fa359a33edce1b4b5816b3de416c823c2624ba5e89c2557d2a47"
+        },
+        {
+          "path": "data/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro/resolve/b189ec765aa7ed75c8acfea42df31fdae71f97be/data/test-00000-of-00001.parquet",
+          "sha256": "0e24a191921c2f453518a537a8b2117bd137e7714d4ef1565e9ba06c1ecb9ad8"
+        },
+        {
+          "path": "data/validation-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro/resolve/b189ec765aa7ed75c8acfea42df31fdae71f97be/data/validation-00000-of-00001.parquet",
+          "sha256": "139423c23722e480c807ac4a191409a710cfce4eba744c1d641cf88e730e2078"
+        }
+      ]
+    },
+    {
+      "name": "anli",
+      "repo": "facebook/anli",
+      "revision": "8e4813d81f46d313dac7892e1c28076917cfcdf9",
+      "category": "grounding",
+      "adapter": "anli",
+      "license": [
+        "cc-by-nc-4.0"
+      ],
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/facebook/anli/resolve/8e4813d81f46d313dac7892e1c28076917cfcdf9/README.md",
+          "sha256": "a35130cf40aec6976d9ff6653c25f8ad60a79e2b9a1247b86e9aa002f6887e83"
+        },
+        {
+          "path": "plain_text/dev_r1-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/facebook/anli/resolve/8e4813d81f46d313dac7892e1c28076917cfcdf9/plain_text/dev_r1-00000-of-00001.parquet",
+          "sha256": "72e27463177b4363be80f1fc6ccdaab44ddaeb65db58c2280f94690e15468334"
+        },
+        {
+          "path": "plain_text/dev_r2-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/facebook/anli/resolve/8e4813d81f46d313dac7892e1c28076917cfcdf9/plain_text/dev_r2-00000-of-00001.parquet",
+          "sha256": "43e4673665decf0b0e8487e55f98285423cb356b985e206fe5998defae2e38fa"
+        },
+        {
+          "path": "plain_text/dev_r3-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/facebook/anli/resolve/8e4813d81f46d313dac7892e1c28076917cfcdf9/plain_text/dev_r3-00000-of-00001.parquet",
+          "sha256": "61775ec09351f6011ce4dc9ea313f457bba6e11d7665d34d95c111665023a83e"
+        },
+        {
+          "path": "plain_text/test_r1-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/facebook/anli/resolve/8e4813d81f46d313dac7892e1c28076917cfcdf9/plain_text/test_r1-00000-of-00001.parquet",
+          "sha256": "c4a3d304c4671941d6bad5a07632a79713c5a1be485ccf75b81b6df93f61045e"
+        },
+        {
+          "path": "plain_text/test_r2-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/facebook/anli/resolve/8e4813d81f46d313dac7892e1c28076917cfcdf9/plain_text/test_r2-00000-of-00001.parquet",
+          "sha256": "df5daccdd5623cfcaa34be0100721783485f4181a42796b1d0ac0cd7601e7acb"
+        },
+        {
+          "path": "plain_text/test_r3-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/facebook/anli/resolve/8e4813d81f46d313dac7892e1c28076917cfcdf9/plain_text/test_r3-00000-of-00001.parquet",
+          "sha256": "3232c4217979da00b2cd6ed97d099a8a8edf04530193ea52e3c8d69190de92a2"
+        },
+        {
+          "path": "plain_text/train_r1-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/facebook/anli/resolve/8e4813d81f46d313dac7892e1c28076917cfcdf9/plain_text/train_r1-00000-of-00001.parquet",
+          "sha256": "de2d038ae67f1fb1872073490b9e7685e9114d5f278ddd4631905fe0a4ecbcff"
+        },
+        {
+          "path": "plain_text/train_r2-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/facebook/anli/resolve/8e4813d81f46d313dac7892e1c28076917cfcdf9/plain_text/train_r2-00000-of-00001.parquet",
+          "sha256": "209f4a15bf77224c62ffbde5f150fda928a7e2f5175366f4cacc3c7588aab13d"
+        },
+        {
+          "path": "plain_text/train_r3-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/facebook/anli/resolve/8e4813d81f46d313dac7892e1c28076917cfcdf9/plain_text/train_r3-00000-of-00001.parquet",
+          "sha256": "c1d3f614d673888ac56b9ab62324e21583c98a11c4fef84e938d0f8fc414b29a"
+        }
+      ]
+    },
+    {
+      "name": "when2call",
+      "repo": "nvidia/When2Call",
+      "revision": "0582f7749df63a96fdc3070932e83e72396ace53",
+      "category": "tools",
+      "adapter": "when_pref",
+      "license": "cc-by-4.0",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/nvidia/When2Call/resolve/0582f7749df63a96fdc3070932e83e72396ace53/README.md",
+          "sha256": "14217217ba73b9421b5c8ac9b35b0c210836212ea007b65ec866513fdb67aa75"
+        },
+        {
+          "path": "test/when2call_test_mcq.jsonl",
+          "url": "https://huggingface.co/datasets/nvidia/When2Call/resolve/0582f7749df63a96fdc3070932e83e72396ace53/test/when2call_test_mcq.jsonl",
+          "sha256": "8c3694e583eeeb8dbc297e6cd90da70efc68efa4b6adb7227523e828c6b7b14c"
+        },
+        {
+          "path": "train/when2call_train_pref.jsonl",
+          "url": "https://huggingface.co/datasets/nvidia/When2Call/resolve/0582f7749df63a96fdc3070932e83e72396ace53/train/when2call_train_pref.jsonl",
+          "sha256": "d90637f108fabf1b097493c5818c3692e1d73140259d2f8e490536255e765bc4"
+        },
+        {
+          "path": "train/when2call_train_sft.jsonl",
+          "url": "https://huggingface.co/datasets/nvidia/When2Call/resolve/0582f7749df63a96fdc3070932e83e72396ace53/train/when2call_train_sft.jsonl",
+          "sha256": "3eb20258557513579995ff55c09fcc33fabf2cd2004dea49dc3a0ba9880e631c"
+        }
+      ]
+    },
+    {
+      "name": "api-bank",
+      "repo": "liminghao1630/API-Bank",
+      "revision": "12e8158b7628c168f07e8f31fbbe3445e99f44cf",
+      "category": "tools",
+      "adapter": "api_bank",
+      "license": "mit",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/README.md",
+          "sha256": "3e0e15fa0c5cc81675bd69af8eb469d128a725c1a7bfc71f03b7877b7b650567"
+        },
+        {
+          "path": "test-data/level-1-api.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/test-data/level-1-api.json",
+          "sha256": "0d3155c5495399836b5b1f1cc4eb6d5d50efa16b2734af50a016a158e9dd79bb"
+        },
+        {
+          "path": "test-data/level-1-response.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/test-data/level-1-response.json",
+          "sha256": "c02a1bd648727b539e245fa248580f511ee80cae8dad742ed4cfa7e7d7144f75"
+        },
+        {
+          "path": "test-data/level-2-api.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/test-data/level-2-api.json",
+          "sha256": "c61966448d9d5cf98334f39b44c0db1fe5a9c6c84a1f53e652f4aacdbbfc5da0"
+        },
+        {
+          "path": "test-data/level-2-response.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/test-data/level-2-response.json",
+          "sha256": "6dbdce1f4f142fa9073fda8da337dc6ef9c6722d08e99606456afb1ac4dc380f"
+        },
+        {
+          "path": "test-data/level-3-batch-inf-icl.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/test-data/level-3-batch-inf-icl.json",
+          "sha256": "099097746d0d3e7c65e8c1f2c4fee71fa0eae7b3730acc9f4298a2195dc0b313"
+        },
+        {
+          "path": "test-data/level-3-batch-inf-response.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/test-data/level-3-batch-inf-response.json",
+          "sha256": "738210a725d3be1d70d358b5d6e9c5a000d3a0c940a574f81be2127d8ef802a5"
+        },
+        {
+          "path": "test-data/level-3-batch-inf.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/test-data/level-3-batch-inf.json",
+          "sha256": "c201843f4be19b80dd035ac9aaaa2ff0d40962a21dff66195f8f19744acd45e8"
+        },
+        {
+          "path": "test-data/level-3.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/test-data/level-3.json",
+          "sha256": "29542493a302915303d5d67f868282ddda46fa15ba059a4bcf38c6687be29d55"
+        },
+        {
+          "path": "training-data/lv1-api-train.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/training-data/lv1-api-train.json",
+          "sha256": "df55440a51e1ed86c261b3c1be1e636ac41a0f337eb3d3c23c7f1c8d5ba8154e"
+        },
+        {
+          "path": "training-data/lv1-response-train.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/training-data/lv1-response-train.json",
+          "sha256": "c32f6ae5925d3f998c6c766f55ca0a2eb5dd22df34b57954bbe4942d5611b0b6"
+        },
+        {
+          "path": "training-data/lv1-train.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/training-data/lv1-train.json",
+          "sha256": "b2c6b416452636b167ea3671a563c48b26c2d91f9e7d9aff7d967a74b5be1ac7"
+        },
+        {
+          "path": "training-data/lv2-api-train.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/training-data/lv2-api-train.json",
+          "sha256": "bc6c806333ab279cb36396f983ce80fff80c114da2e83a17a9a9e380e5c65db1"
+        },
+        {
+          "path": "training-data/lv2-response-train.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/training-data/lv2-response-train.json",
+          "sha256": "ad3062324482a641231a5f1b13b9613e276facf24a9b251d4a796846b639db5f"
+        },
+        {
+          "path": "training-data/lv2-train.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/training-data/lv2-train.json",
+          "sha256": "e0cca75bb396ac0156990019f1891566b3cd72c34fd9383fe6539382f850f92c"
+        },
+        {
+          "path": "training-data/lv3-api-train.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/training-data/lv3-api-train.json",
+          "sha256": "f9223633cb0ea4f26182aa3bca48590dff26e6b620163377d2b3059e7660413f"
+        },
+        {
+          "path": "training-data/lv3-response-train.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/training-data/lv3-response-train.json",
+          "sha256": "68f912b4928b0b903ea41ff567bb347236c8de70b9756734efb2f9cb5b0e7b0f"
+        },
+        {
+          "path": "training-data/lv3-train.json",
+          "url": "https://huggingface.co/datasets/liminghao1630/API-Bank/resolve/12e8158b7628c168f07e8f31fbbe3445e99f44cf/training-data/lv3-train.json",
+          "sha256": "aa939e699246ad73357b6f9b2dffe84463a75f350796303bdd0a0ae51e8a3964"
+        }
+      ]
+    },
+    {
+      "name": "toolret",
+      "repo": "mangopy/ToolRet-Training-20w",
+      "revision": "fdf5a317455b1e60785de7ba587496aa6cc878e4",
+      "category": "tools",
+      "adapter": "toolret",
+      "license": "not-stated",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Training-20w/resolve/fdf5a317455b1e60785de7ba587496aa6cc878e4/README.md",
+          "sha256": "9b6b32531814a13b13c11a927504601da6047546f22950757e9bc2cbe5cc69c9"
+        },
+        {
+          "path": "ToolRet-Training-20w/train-00000-of-00006.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Training-20w/resolve/fdf5a317455b1e60785de7ba587496aa6cc878e4/ToolRet-Training-20w/train-00000-of-00006.parquet",
+          "sha256": "6b6d535943e1f40fd9215a9f46de34b552c298939451ec5c10ee2ca229acf4ce"
+        },
+        {
+          "path": "ToolRet-Training-20w/train-00001-of-00006.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Training-20w/resolve/fdf5a317455b1e60785de7ba587496aa6cc878e4/ToolRet-Training-20w/train-00001-of-00006.parquet",
+          "sha256": "da05a63b987ea26157702cd34cbeef1f9a15a0c6fd40e3dc701fd9ffd4c96c71"
+        },
+        {
+          "path": "ToolRet-Training-20w/train-00002-of-00006.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Training-20w/resolve/fdf5a317455b1e60785de7ba587496aa6cc878e4/ToolRet-Training-20w/train-00002-of-00006.parquet",
+          "sha256": "8ef3be663cd97bda920949d8d1e11a04ae936b32fe130b4e5f2522d72c1844c4"
+        },
+        {
+          "path": "ToolRet-Training-20w/train-00003-of-00006.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Training-20w/resolve/fdf5a317455b1e60785de7ba587496aa6cc878e4/ToolRet-Training-20w/train-00003-of-00006.parquet",
+          "sha256": "dacd52becb3cf8789d1d725014a6f8b3641c7e30d03fe8d5d80c8f2200af49c9"
+        },
+        {
+          "path": "ToolRet-Training-20w/train-00004-of-00006.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Training-20w/resolve/fdf5a317455b1e60785de7ba587496aa6cc878e4/ToolRet-Training-20w/train-00004-of-00006.parquet",
+          "sha256": "665af37c69804cb94dc0c3783e4fdbb729ff0f6583386351baa49eeb19eb90d9"
+        },
+        {
+          "path": "ToolRet-Training-20w/train-00005-of-00006.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Training-20w/resolve/fdf5a317455b1e60785de7ba587496aa6cc878e4/ToolRet-Training-20w/train-00005-of-00006.parquet",
+          "sha256": "f77c8c0fa87f49b724e98c898abc5a0ef1ab8e811ae4acec8ccd6afe94fe12f3"
+        }
+      ]
+    },
+    {
+      "name": "toolret-protected",
+      "repo": "mangopy/ToolRet-Queries",
+      "revision": "b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445",
+      "category": "tools",
+      "adapter": "protected",
+      "license": "not-stated",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/README.md",
+          "sha256": "3198e4923caf97e1cfde81c7931e47cd85e3ad0c1bc56b7d0e144100a37e38c6"
+        },
+        {
+          "path": "apibank/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/apibank/queries-00000-of-00001.parquet",
+          "sha256": "1e91b9c4f7e0b38946bf5c3272e15af73f0b446e4d546c52e09179b3a9709d3b"
+        },
+        {
+          "path": "apigen/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/apigen/queries-00000-of-00001.parquet",
+          "sha256": "7f6d6ee477ba98380816c418f51c445c937771ee557d73c0a575d0d30fd01a14"
+        },
+        {
+          "path": "appbench/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/appbench/queries-00000-of-00001.parquet",
+          "sha256": "e7efff5e12a7676df46ded343abfdd44cc3c4fbeacee3d6b89edec8a9022b5d7"
+        },
+        {
+          "path": "autotools-food/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/autotools-food/queries-00000-of-00001.parquet",
+          "sha256": "a780caf11c358db91552c6c75a7c8fe6312c73dcead3413543b9ccb1ffef6419"
+        },
+        {
+          "path": "autotools-music/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/autotools-music/queries-00000-of-00001.parquet",
+          "sha256": "aff4630b7e8828b262df047b2db1172cf24b57c15e454261359f6e64e028487d"
+        },
+        {
+          "path": "autotools-weather/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/autotools-weather/queries-00000-of-00001.parquet",
+          "sha256": "80203c8ee6070ca102b08eb90b134f9602e4d085ba2f4da4f89288e1edd5f68f"
+        },
+        {
+          "path": "craft-math-algebra/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/craft-math-algebra/queries-00000-of-00001.parquet",
+          "sha256": "70993dcb4bc2b55f42994bed7f08b785d6af6baad941ee6973db26e2700b5df6"
+        },
+        {
+          "path": "craft-tabmwp/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/craft-tabmwp/queries-00000-of-00001.parquet",
+          "sha256": "c86458e41e26ac631aea4223fb9e24803d1b8117e31c28265824c10d221cfdf5"
+        },
+        {
+          "path": "craft-vqa/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/craft-vqa/queries-00000-of-00001.parquet",
+          "sha256": "014a4d68f6f55f74820139ea6008cbce91c609d8e0965aac94ac1599683d8d9b"
+        },
+        {
+          "path": "gorilla-huggingface/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/gorilla-huggingface/queries-00000-of-00001.parquet",
+          "sha256": "ed64800b722bc8e2b8520feb3e5defc3988b0cc858929396ffc930625e71f703"
+        },
+        {
+          "path": "gorilla-pytorch/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/gorilla-pytorch/queries-00000-of-00001.parquet",
+          "sha256": "b6423e142bab08ac0d7f9cdc1851a8e85a915970936139c795f697188b137ae0"
+        },
+        {
+          "path": "gorilla-tensor/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/gorilla-tensor/queries-00000-of-00001.parquet",
+          "sha256": "5b037823ac75e503df7abb08c51dcf7843f86ffb8ff45a625a09f1589b8f1fc7"
+        },
+        {
+          "path": "gpt4tools/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/gpt4tools/queries-00000-of-00001.parquet",
+          "sha256": "7171ba30b7930b76e3562d38c0cf74c2c778fbc429e2087234f8bef577ed7576"
+        },
+        {
+          "path": "gta/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/gta/queries-00000-of-00001.parquet",
+          "sha256": "757560b5e587993e8fb05c9d3ad146016cdefa21b938bd50b78ad6045067bb08"
+        },
+        {
+          "path": "metatool/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/metatool/queries-00000-of-00001.parquet",
+          "sha256": "f4839301cd345a6b5eef1ebfd1710dfb209e5c9b6812a31ed8d7152979393ca0"
+        },
+        {
+          "path": "mnms/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/mnms/queries-00000-of-00001.parquet",
+          "sha256": "d591f2cf3974abe21c6c0462a935b53b807246b95ed4d7439d5d05e0e97973ca"
+        },
+        {
+          "path": "restgpt-spotify/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/restgpt-spotify/queries-00000-of-00001.parquet",
+          "sha256": "a2dcd32971d6e807c437f09f3c09f84a2bc53a805468b98307ea41116c35e0a4"
+        },
+        {
+          "path": "restgpt-tmdb/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/restgpt-tmdb/queries-00000-of-00001.parquet",
+          "sha256": "aa8a256d7100b005f6258f60229b5c0350967be3b8b8d6e6b58dfa79a8059193"
+        },
+        {
+          "path": "reversechain/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/reversechain/queries-00000-of-00001.parquet",
+          "sha256": "d4da51689cfc10f045e37bce6ffeb665e43a67faa9d71834abc84106603ad854"
+        },
+        {
+          "path": "rotbench/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/rotbench/queries-00000-of-00001.parquet",
+          "sha256": "2f75a1caf9c105560b5da02bd17e733e7d4d7e57ed6e0696728ffc36dae00159"
+        },
+        {
+          "path": "t-eval-dialog/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/t-eval-dialog/queries-00000-of-00001.parquet",
+          "sha256": "da566b97d930ce44b89bca85c2e7fa6acac6809110f76bb2e354a77a978ed97e"
+        },
+        {
+          "path": "t-eval-step/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/t-eval-step/queries-00000-of-00001.parquet",
+          "sha256": "eddd81571593a320e09b96d3807350d81f5c2778087489844d73551fca14c899"
+        },
+        {
+          "path": "taskbench-daily/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/taskbench-daily/queries-00000-of-00001.parquet",
+          "sha256": "7357298960afafd3afcff91559cc14e95486e729798ef1b39af044e494cb8d15"
+        },
+        {
+          "path": "taskbench-huggingface/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/taskbench-huggingface/queries-00000-of-00001.parquet",
+          "sha256": "c94f6ca056dd0906fb0f0d2cd9abe4f98a077c368fc52af9dee14325ee60d58a"
+        },
+        {
+          "path": "taskbench-multimedia/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/taskbench-multimedia/queries-00000-of-00001.parquet",
+          "sha256": "0cebfcd50a061c48c043785f80db4ec48fbaa82f764db29f20b83f82b7e6d7e4"
+        },
+        {
+          "path": "tool-be-honest/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/tool-be-honest/queries-00000-of-00001.parquet",
+          "sha256": "e936b9dde7b3e7256662464a118b952c3873ea0b6086d0a328a568b7b35678cb"
+        },
+        {
+          "path": "toolace/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/toolace/queries-00000-of-00001.parquet",
+          "sha256": "49f7c861cec1799430680cea1df6cb98a10b33227f6cb183ac32375f396fcd5a"
+        },
+        {
+          "path": "toolalpaca/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/toolalpaca/queries-00000-of-00001.parquet",
+          "sha256": "627659a13d1b30a76e94d91ea27b14b4bc3be30e3fd6cd727f58ca1665bb1fe2"
+        },
+        {
+          "path": "toolbench-sam/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/toolbench-sam/queries-00000-of-00001.parquet",
+          "sha256": "36075db0985db103afac9ad959f7974e79eb267c7d47fd31a6de4813e3a3802f"
+        },
+        {
+          "path": "toolbench/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/toolbench/queries-00000-of-00001.parquet",
+          "sha256": "2bb32ea009d6ece37b1b785330247aacac037a20dd4522632cb3359809c8837d"
+        },
+        {
+          "path": "toolemu/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/toolemu/queries-00000-of-00001.parquet",
+          "sha256": "f11491359b61bfb4a6f4d9bed2c45baab547938986e749e9eee555c667887020"
+        },
+        {
+          "path": "tooleyes/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/tooleyes/queries-00000-of-00001.parquet",
+          "sha256": "c28280ed0a3cb119cc22f3f6678610bd2b7d4f9acbe7b800f0452b9a8d8a5d09"
+        },
+        {
+          "path": "toolink/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/toolink/queries-00000-of-00001.parquet",
+          "sha256": "6ff2d524e1e79b8af96518e9d880ddf00cb8371e1bf58475011551b74d9d4a91"
+        },
+        {
+          "path": "toollens/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/toollens/queries-00000-of-00001.parquet",
+          "sha256": "344e08a552508c77cb58e87dc93f7090f5c4eedba771095e5cdf6c1b12243a79"
+        },
+        {
+          "path": "ultratool/queries-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/mangopy/ToolRet-Queries/resolve/b8c76ad3349ff17497b6bdb28bb5b8f61a0f6445/ultratool/queries-00000-of-00001.parquet",
+          "sha256": "5fc5fd59cab9e9a6852817ccb4645f81d47bf4394da232404d798c1be33d36b8"
+        }
+      ]
+    },
+    {
+      "name": "toolace",
+      "repo": "Team-ACE/ToolACE",
+      "revision": "6bda777c88d21e5a204703c1ee45597a8fa4f734",
+      "category": "tools",
+      "adapter": "raw",
+      "license": "apache-2.0",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/Team-ACE/ToolACE/resolve/6bda777c88d21e5a204703c1ee45597a8fa4f734/README.md",
+          "sha256": "4e82e47712cfdc0bc86b3b0c6b03f5f2f00a1ca54ccfa696276833743c85e460"
+        },
+        {
+          "path": "data.json",
+          "url": "https://huggingface.co/datasets/Team-ACE/ToolACE/resolve/6bda777c88d21e5a204703c1ee45597a8fa4f734/data.json",
+          "sha256": "ba12c083fca7e8da48c67ad5b895e495447da7c66e39a2e19742c082e6cb537e"
+        }
+      ]
+    },
+    {
+      "name": "clinc",
+      "repo": "clinc/clinc_oos",
+      "revision": "155b9c710419136e17307b80d0a13e68cd46b4ec",
+      "category": "tools",
+      "adapter": "clinc",
+      "license": [
+        "cc-by-3.0"
+      ],
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/clinc/clinc_oos/resolve/155b9c710419136e17307b80d0a13e68cd46b4ec/README.md",
+          "sha256": "e28704a3c04f6b05c286ca2a8891bbf32c69c000dedfc5825d6e1713369b7a89"
+        },
+        {
+          "path": "plus/test-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/clinc/clinc_oos/resolve/155b9c710419136e17307b80d0a13e68cd46b4ec/plus/test-00000-of-00001.parquet",
+          "sha256": "3e60e45b25bf86543aa5df8ba4fcc674114164e6184f0197690648c2908d0102"
+        },
+        {
+          "path": "plus/train-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/clinc/clinc_oos/resolve/155b9c710419136e17307b80d0a13e68cd46b4ec/plus/train-00000-of-00001.parquet",
+          "sha256": "30188119cf9f86fc9db27e1c22442d091cb5cb0913c9496f945fe11e7a02a28f"
+        },
+        {
+          "path": "plus/validation-00000-of-00001.parquet",
+          "url": "https://huggingface.co/datasets/clinc/clinc_oos/resolve/155b9c710419136e17307b80d0a13e68cd46b4ec/plus/validation-00000-of-00001.parquet",
+          "sha256": "fbd545b46c611c4a7ba4b48cae6c7f09bb5b59f33ff56206ad1cd366c85cdfaa"
+        }
+      ]
+    },
+    {
+      "name": "codeio",
+      "repo": "hkust-nlp/CodeIO-PyEdu-Reasoning-Raw",
+      "revision": "413a78caa01e634318ef8aa0e84f5ff242f25807",
+      "category": "code",
+      "adapter": "codeio",
+      "license": "odc-by",
+      "files": [
+        {
+          "path": "0_368500_filtered_v2_ds25.sced.jsonl",
+          "url": "https://huggingface.co/datasets/hkust-nlp/CodeIO-PyEdu-Reasoning-Raw/resolve/413a78caa01e634318ef8aa0e84f5ff242f25807/0_368500_filtered_v2_ds25.sced.jsonl",
+          "sha256": "e6f0b1d1db181764a5d6ca6d2dcf8b641b63c632468672d1abfc24837700cca4"
+        },
+        {
+          "path": "README.md",
+          "url": "https://huggingface.co/datasets/hkust-nlp/CodeIO-PyEdu-Reasoning-Raw/resolve/413a78caa01e634318ef8aa0e84f5ff242f25807/README.md",
+          "sha256": "b49246a464bee9a0b694213325b25d525ddc543a401bfd0a937c4aa427bb0f66"
+        }
+      ]
+    },
+    {
+      "name": "ragtruth",
+      "repo": "ParticleMedia/RAGTruth",
+      "revision": "c103204b9ce28d6bbad859304bf30de72b8ed8fe",
+      "category": "grounding",
+      "adapter": "rag",
+      "license": "MIT annotations; upstream context terms retained",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/ParticleMedia/RAGTruth/c103204b9ce28d6bbad859304bf30de72b8ed8fe/README.md",
+          "sha256": "3686178d505a38cb20a94827917369bcb9d0aa44cf5154d7ddbac740ee06628d"
+        },
+        {
+          "path": "LICENSE",
+          "url": "https://raw.githubusercontent.com/ParticleMedia/RAGTruth/c103204b9ce28d6bbad859304bf30de72b8ed8fe/LICENSE",
+          "sha256": "b7fd7d6bdfe0cbba63c63a310914beb4a4acb8bf08da73849219f45385f5b244"
+        },
+        {
+          "path": "dataset/response.jsonl",
+          "url": "https://raw.githubusercontent.com/ParticleMedia/RAGTruth/c103204b9ce28d6bbad859304bf30de72b8ed8fe/dataset/response.jsonl",
+          "sha256": "e4c2e4ac24fff676d8984cc61c35d791612fadc58015335d97dd632375e18073"
+        },
+        {
+          "path": "dataset/source_info.jsonl",
+          "url": "https://raw.githubusercontent.com/ParticleMedia/RAGTruth/c103204b9ce28d6bbad859304bf30de72b8ed8fe/dataset/source_info.jsonl",
+          "sha256": "0dffc26ea9f3c1c3d7c7e8336b56ef1646e3cec876edffcca3c9c624d12d578b"
+        }
+      ]
+    },
+    {
+      "name": "hover",
+      "repo": "hover-nlp/hover",
+      "revision": "39b84697f196308f398a251a7aea9b82ae0f0562",
+      "category": "grounding",
+      "adapter": "raw",
+      "license": "CC-BY-SA-4.0",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/hover-nlp/hover/39b84697f196308f398a251a7aea9b82ae0f0562/README.md",
+          "sha256": "3791b87be3db412252006bfde11312583cd07cb5cea2596822bba4280562bb69"
+        },
+        {
+          "path": "data/hover/hover_train_release_v1.1.json",
+          "url": "https://raw.githubusercontent.com/hover-nlp/hover/39b84697f196308f398a251a7aea9b82ae0f0562/data/hover/hover_train_release_v1.1.json",
+          "sha256": "1f1cd57abd616fa00c70bdc575ce77c16fc6cf1a6cffd5ff87c208030a336bb6"
+        },
+        {
+          "path": "data/hover/hover_dev_release_v1.1.json",
+          "url": "https://raw.githubusercontent.com/hover-nlp/hover/39b84697f196308f398a251a7aea9b82ae0f0562/data/hover/hover_dev_release_v1.1.json",
+          "sha256": "67c14858f2d7fcdb96b6fe3d538ffcd6f76e3ba594aa2c0cd4359f601101e89d"
+        }
+      ]
+    },
+    {
+      "name": "contractnli",
+      "repo": "stanfordnlp/contract-nli",
+      "revision": "eced6528dd3c1d14d73f9a87df8f7bdbc03126f9",
+      "category": "grounding",
+      "adapter": "raw",
+      "license": "CC-BY-4.0",
+      "files": [
+        {
+          "path": "contract-nli.zip",
+          "url": "https://raw.githubusercontent.com/stanfordnlp/contract-nli/eced6528dd3c1d14d73f9a87df8f7bdbc03126f9/resources/contract-nli.zip",
+          "sha256": "e03fc77bbf8b53e2976a250e81d8a294bc3d5e5fb014521e477dee9340d6287b"
+        }
+      ]
+    }
+  ]
+}

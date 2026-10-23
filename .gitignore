@@ -1,0 +1,16 @@
+build/
+/data/
+/datasets/
+weights/
+checkpoints/
+outputs/
+.venv/
+__pycache__/
+*.pyc
+/.env.local
+/.env.*.local
+
+.env
+.env.*
+!.env.example
+.pytest_cache/

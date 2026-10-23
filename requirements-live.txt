@@ -1,0 +1,3 @@
+-r requirements.txt
+# Required by the current live NF4 Kiln path, not cached training.
+bitsandbytes

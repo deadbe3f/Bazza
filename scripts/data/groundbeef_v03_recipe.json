@@ -1,0 +1,55 @@
+{
+  "dataset": "groundbeef",
+  "version": "0.3",
+  "seed": 20261011,
+  "max_input_tokens": 4096,
+  "train": {
+    "when2call": 6000, "toolace": 6000, "api-bank": 3000, "toolret": 6000,
+    "anli": 10000, "ragtruth": 6000,
+    "gsm8k-4choice": 3000, "gsm8k-10choice": 3000, "aqua": 3000, "mathqa": 1000,
+    "mmlu": 6000, "arc-challenge": 1000, "arc-easy": 1000, "openbookqa": 1000,
+    "sciq": 1000, "winogrande": 700, "hellaswag": 700, "commonsenseqa": 600,
+    "codeio": 5000,
+    "retained:open_jev": 5000, "retained:distill_v3": 2000, "retained:swe_qa": 3000,
+    "retained:hermes": 2000, "retained:boolq": 1000,
+    "retained:helpsteer2": 2000, "retained:groundbeef_rules": 1000
+  },
+  "validation": {
+    "when2call": 250, "toolace": 250, "api-bank": 200, "toolret": 200,
+    "anli": 600, "ragtruth": 400,
+    "gsm8k-4choice": 200, "gsm8k-10choice": 200, "aqua": 100, "mathqa": 100,
+    "mmlu": 200, "arc-challenge": 200, "arc-easy": 50, "openbookqa": 50,
+    "sciq": 100, "winogrande": 100, "hellaswag": 100, "commonsenseqa": 100,
+    "codeio": 300,
+    "retained:open_jev": 75, "retained:distill_v3": 25, "retained:swe_qa": 50, "retained:helpsteer2": 50,
+    "retained:groundbeef_rules": 50, "retained:hermes": 25, "retained:boolq": 25
+  },
+  "calibration": {
+    "when2call": 30, "toolace": 30, "toolret": 30,
+    "anli": 90, "ragtruth": 60,
+    "gsm8k-4choice": 30, "gsm8k-10choice": 30, "aqua": 20, "mathqa": 20,
+    "mmlu": 40, "arc-challenge": 20, "sciq": 20,
+    "winogrande": 20, "hellaswag": 20, "commonsenseqa": 20, "codeio": 20
+  },
+  "quick_validation_rows": 1000,
+  "retained_open_sources": {
+    "reasoning-control-v1": 1000, "customer-control-v1": 920, "painting-geometry-v1": 180,
+    "vizdoom-basic-v1": 400, "snake-v1": 250, "tic_tac_toe-v1": 250,
+    "tile_platformer-v1": 100, "trex_runner-v1": 28,
+    "workflow-controls-v1/customer_service": 468,
+    "workflow-controls-v1/security_incidents": 468,
+    "workflow-controls-v1/agent_trace_observability": 468,
+    "workflow-controls-v1/invoice_processing": 468
+  },
+  "default_group_cap": 4,
+  "retained_rule_tasks": {
+    "action_approval": 250, "record_grounding": 250,
+    "workflow_control": 250, "capability_routing": 250
+  },
+  "group_cap_exceptions": {
+    "gsm8k": "One presentation per problem in training; paired 4/10 views only in validation.",
+    "codeio": "One I/O observation per program in each split.",
+    "swe_qa": "Repository owns the split; one variant per upstream question. A repository may contribute more than four questions.",
+    "distill_v3": "One selected decision per parent variant group. Teacher probabilities remain soft."
+  }
+}
