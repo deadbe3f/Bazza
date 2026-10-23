@@ -133,6 +133,7 @@ def log_batch_start(trainer, context):
     if context.stage == "train":
         print(trainer.state.examples_seen)
 
+
 trainer.on("batch_start", log_batch_start)
 
 # Inside the trainer, at the actual batch boundary:

@@ -1,8 +1,11 @@
 """Frozen letter prior, request gate and residual answer projection."""
+
 import math
+
 import torch
 from torch import nn
 from torch.nn import functional as F
+
 
 class LetterReadout(nn.Module):
     def __init__(self, weight, softcap):
@@ -13,14 +16,14 @@ class LetterReadout(nn.Module):
     def forward(self, hidden, mask, positions, option_mask):
         last = mask.long().sum(-1) - 1
         final = hidden[torch.arange(len(hidden), device=hidden.device), last]
-        logits = F.linear(final, self.weight[:option_mask.shape[1]]).float()
+        logits = F.linear(final, self.weight[: option_mask.shape[1]]).float()
         if self.softcap:
             logits = self.softcap * (logits / self.softcap).tanh()
         return logits.masked_fill(~option_mask, -1e4)
 
 
 class HybridReadout(nn.Module):
-    def __init__(self, decision, letter, initial_prior=.1):
+    def __init__(self, decision, letter, initial_prior=0.1):
         super().__init__()
         self.decision, self.letter = decision, letter
         # Deterministic scalar: adding this branch must not change initialization
@@ -30,7 +33,10 @@ class HybridReadout(nn.Module):
     def forward(self, hidden, mask, positions, option_mask):
         decision = self.decision(hidden, mask, positions, option_mask)
         prior = self.letter(hidden, mask, positions, option_mask)
-        return (decision + self.prior_gate.tanh() * prior).masked_fill(~option_mask, -1e4)
+        return (decision + self.prior_gate.tanh() * prior).masked_fill(
+            ~option_mask, -1e4
+        )
+
 
 def final_state(hidden, mask):
     last = mask.long().sum(-1) - 1
@@ -57,24 +63,33 @@ class RequestGateReadout(nn.Module):
         # puts it on the unchanged auxiliary AdamW LR, as for the original scorer.
         self.action_score = nn.Linear(gate_width + 5, 1)
         nn.init.zeros_(self.action_score.weight)
-        nn.init.constant_(self.action_score.bias, math.log(.1 / .9))
+        nn.init.constant_(self.action_score.bias, math.log(0.1 / 0.9))
         self.last_gate = None
 
     def forward(self, hidden, mask, positions, option_mask):
         decision = self.decision(hidden, mask, positions, option_mask)
         prior = self.letter(hidden, mask, positions, option_mask)
-        state = F.silu(self.request_project(self.request_norm(final_state(hidden, mask))))
-        stats = torch.cat((confidence_features(decision, option_mask),
-                           confidence_features(prior, option_mask),
-                           option_mask.sum(-1, keepdim=True).float().log()), -1)
+        state = F.silu(
+            self.request_project(self.request_norm(final_state(hidden, mask)))
+        )
+        stats = torch.cat(
+            (
+                confidence_features(decision, option_mask),
+                confidence_features(prior, option_mask),
+                option_mask.sum(-1, keepdim=True).float().log(),
+            ),
+            -1,
+        )
         gate = self.action_score(torch.cat((state, stats), -1)).float().sigmoid()
         self.last_gate = gate.detach()
         return (decision + gate * prior).masked_fill(~option_mask, -1e4)
 
     def diagnostics(self):
-        return {"request_gate_mean": float(self.last_gate.mean()),
-                "request_gate_min": float(self.last_gate.min()),
-                "request_gate_max": float(self.last_gate.max())}
+        return {
+            "request_gate_mean": float(self.last_gate.mean()),
+            "request_gate_min": float(self.last_gate.min()),
+            "request_gate_max": float(self.last_gate.max()),
+        }
 
 
 class AnswerAdapter(nn.Module):
@@ -90,12 +105,14 @@ class AnswerAdapter(nn.Module):
 
 
 class ResidualAnswerReadout(nn.Module):
-    def __init__(self, decision, letter, hybrid, reasoner_width=1024, encoder_width=3840, rank=64):
+    def __init__(
+        self, decision, letter, hybrid, reasoner_width=1024, encoder_width=3840, rank=64
+    ):
         super().__init__()
         self.decision, self.letter, self.hybrid = decision, letter, hybrid
         self.answer_adapter = AnswerAdapter(reasoner_width, encoder_width, rank)
         if hybrid:
-            self.prior_gate = nn.Parameter(torch.tensor(math.atanh(.1)))
+            self.prior_gate = nn.Parameter(torch.tensor(math.atanh(0.1)))
         self.last_relative_delta = None
 
     def forward(self, hidden, mask, positions, option_mask):
@@ -103,7 +120,8 @@ class ResidualAnswerReadout(nn.Module):
         # A scoped hook avoids duplicating/reimplementing the reader or reasoner.
         high = []
         handle = self.decision.decision.reasoner.register_forward_hook(
-            lambda module, inputs, output: high.append(output.high_state))
+            lambda module, inputs, output: high.append(output.high_state)
+        )
         try:
             decision = self.decision(hidden, mask, positions, option_mask)
         finally:
@@ -112,9 +130,12 @@ class ResidualAnswerReadout(nn.Module):
             raise ValueError("Expected exactly one reasoner forward")
         delta = self.answer_adapter(high.pop())
         original = final_state(hidden, mask)
-        self.last_relative_delta = (delta.detach().float().square().mean(-1).sqrt() /
-                                    original.detach().float().square().mean(-1).sqrt().clamp_min(1e-8))
-        logits = F.linear(original + delta, self.letter.weight[:option_mask.shape[1]]).float()
+        self.last_relative_delta = delta.detach().float().square().mean(
+            -1
+        ).sqrt() / original.detach().float().square().mean(-1).sqrt().clamp_min(1e-8)
+        logits = F.linear(
+            original + delta, self.letter.weight[: option_mask.shape[1]]
+        ).float()
         cap = self.letter.softcap
         if cap:
             logits = cap * (logits / cap).tanh()
@@ -123,14 +144,26 @@ class ResidualAnswerReadout(nn.Module):
         return logits.masked_fill(~option_mask, -1e4)
 
     def diagnostics(self):
-        values = {"answer_delta_relative_rms_mean": float(self.last_relative_delta.mean())}
+        values = {
+            "answer_delta_relative_rms_mean": float(self.last_relative_delta.mean())
+        }
         if self.hybrid:
-            values["pretrained_prior_coefficient"] = float(self.prior_gate.detach().tanh())
+            values["pretrained_prior_coefficient"] = float(
+                self.prior_gate.detach().tanh()
+            )
         return values
 
+
 class MixedReadout(RequestGateReadout):
-    def __init__(self, decision, letter, encoder_width=3840, reasoner_width=1024,
-                 gate_width=32, rank=64):
+    def __init__(
+        self,
+        decision,
+        letter,
+        encoder_width=3840,
+        reasoner_width=1024,
+        gate_width=32,
+        rank=64,
+    ):
         component_rng = torch.get_rng_state()
         super().__init__(decision, letter, encoder_width, gate_width)
         # Match each component's separate trial initialization. Adding the gate
@@ -143,7 +176,8 @@ class MixedReadout(RequestGateReadout):
     def forward(self, hidden, mask, positions, option_mask):
         high = []
         handle = self.decision.decision.reasoner.register_forward_hook(
-            lambda module, inputs, output: high.append(output.high_state))
+            lambda module, inputs, output: high.append(output.high_state)
+        )
         try:
             decision = self.decision(hidden, mask, positions, option_mask)
         finally:
@@ -152,21 +186,31 @@ class MixedReadout(RequestGateReadout):
             raise ValueError("Expected exactly one reasoner forward")
         original = final_state(hidden, mask)
         delta = self.answer_adapter(high.pop())
-        prior = F.linear(original + delta, self.letter.weight[:option_mask.shape[1]]).float()
+        prior = F.linear(
+            original + delta, self.letter.weight[: option_mask.shape[1]]
+        ).float()
         cap = self.letter.softcap
         if cap:
             prior = cap * (prior / cap).tanh()
         prior = prior.masked_fill(~option_mask, -1e4)
         state = F.silu(self.request_project(self.request_norm(original)))
-        stats = torch.cat((confidence_features(decision, option_mask),
-                           confidence_features(prior, option_mask),
-                           option_mask.sum(-1, keepdim=True).float().log()), -1)
+        stats = torch.cat(
+            (
+                confidence_features(decision, option_mask),
+                confidence_features(prior, option_mask),
+                option_mask.sum(-1, keepdim=True).float().log(),
+            ),
+            -1,
+        )
         gate = self.action_score(torch.cat((state, stats), -1)).float().sigmoid()
         self.last_gate = gate.detach()
-        self.last_relative_delta = (delta.detach().float().square().mean(-1).sqrt() /
-                                    original.detach().float().square().mean(-1).sqrt().clamp_min(1e-8))
+        self.last_relative_delta = delta.detach().float().square().mean(
+            -1
+        ).sqrt() / original.detach().float().square().mean(-1).sqrt().clamp_min(1e-8)
         return (decision + gate * prior).masked_fill(~option_mask, -1e4)
 
     def diagnostics(self):
-        return {**super().diagnostics(),
-                "answer_delta_relative_rms_mean": float(self.last_relative_delta.mean())}
+        return {
+            **super().diagnostics(),
+            "answer_delta_relative_rms_mean": float(self.last_relative_delta.mean()),
+        }

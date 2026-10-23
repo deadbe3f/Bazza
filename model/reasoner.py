@@ -45,11 +45,17 @@ class LowLevelUpdate(nn.Module):
         super().__init__()
         self.high_condition = nn.Linear(width, width)
         self.self_norm = nn.LayerNorm(width)
-        self.self_attention = nn.MultiheadAttention(width, attention_heads, batch_first=True)
+        self.self_attention = nn.MultiheadAttention(
+            width, attention_heads, batch_first=True
+        )
         self.cross_norm = nn.LayerNorm(width)
-        self.cross_attention = nn.MultiheadAttention(width, attention_heads, batch_first=True)
+        self.cross_attention = nn.MultiheadAttention(
+            width, attention_heads, batch_first=True
+        )
         self.ffn_norm = nn.LayerNorm(width)
-        self.ffn = nn.Sequential(nn.Linear(width, 2 * width), nn.GELU(), nn.Linear(2 * width, width))
+        self.ffn = nn.Sequential(
+            nn.Linear(width, 2 * width), nn.GELU(), nn.Linear(2 * width, width)
+        )
 
     def forward(
         self,
@@ -62,12 +68,19 @@ class LowLevelUpdate(nn.Module):
         conditioned = low + self.high_condition(high)[:, None, :]
         query = self.self_norm(conditioned)
         update, _ = self.self_attention(
-            query, query, query, key_padding_mask=~workspace_mask, need_weights=False,
+            query,
+            query,
+            query,
+            key_padding_mask=~workspace_mask,
+            need_weights=False,
         )
         low = low + update
         update, _ = self.cross_attention(
-            self.cross_norm(low), memory, memory,
-            key_padding_mask=~memory_mask, need_weights=False,
+            self.cross_norm(low),
+            memory,
+            memory,
+            key_padding_mask=~memory_mask,
+            need_weights=False,
         )
         low = low + update
         low = low + self.ffn(self.ffn_norm(low))
@@ -107,7 +120,10 @@ class ReasoningHead(nn.Module):
         action_mask: torch.Tensor | None = None,
         slot_mask: torch.Tensor | None = None,
     ) -> ReasoningOutput:
-        if encoder_hidden.ndim != 3 or encoder_hidden.shape[-1] != self.config.encoder_width:
+        if (
+            encoder_hidden.ndim != 3
+            or encoder_hidden.shape[-1] != self.config.encoder_width
+        ):
             raise ValueError("encoder_hidden has the wrong shape")
         if attention_mask.shape != encoder_hidden.shape[:2]:
             raise ValueError("attention_mask has the wrong shape")
@@ -117,7 +133,10 @@ class ReasoningHead(nn.Module):
             action_mask = torch.ones_like(action_positions, dtype=torch.bool)
         if slot_mask is None:
             slot_mask = torch.ones_like(slot_positions, dtype=torch.bool)
-        if action_mask.shape != action_positions.shape or slot_mask.shape != slot_positions.shape:
+        if (
+            action_mask.shape != action_positions.shape
+            or slot_mask.shape != slot_positions.shape
+        ):
             raise ValueError("marker masks must match marker positions")
         memory_mask = attention_mask.bool()
         if not torch.all(memory_mask.any(dim=1)):
@@ -127,26 +146,38 @@ class ReasoningHead(nn.Module):
             raise ValueError("each input needs an unmasked marker")
 
         memory = self.project(encoder_hidden)
-        low = torch.cat((self._gather(memory, action_positions),
-                         self._gather(memory, slot_positions)), dim=1)
+        low = torch.cat(
+            (
+                self._gather(memory, action_positions),
+                self._gather(memory, slot_positions),
+            ),
+            dim=1,
+        )
         low = low.masked_fill(~workspace_mask[:, :, None], 0)
         high = self.high_init(memory[:, 0])
         for _ in range(self.config.high_cycles):
             for _ in range(self.config.low_steps):
                 low = self.low_update(low, high, memory, workspace_mask, memory_mask)
             pooled = (low * workspace_mask[:, :, None]).sum(dim=1) / workspace_mask.sum(
-                dim=1, keepdim=True,
+                dim=1,
+                keepdim=True,
             ).clamp_min(1)
             high = self.high_update(pooled, high)
 
         n_actions = action_positions.shape[1]
         action_states = low[:, :n_actions] + high[:, None, :]
         slot_states = low[:, n_actions:] + high[:, None, :]
-        action_logits = self.action_score(self.action_norm(action_states)).squeeze(-1).float()
+        action_logits = (
+            self.action_score(self.action_norm(action_states)).squeeze(-1).float()
+        )
         action_logits = action_logits.masked_fill(~action_mask.bool(), -1e4)
         slot_gate_logits = self.slot_gate(self.slot_norm(slot_states)).float()
-        slot_gate_logits = slot_gate_logits.masked_fill(~slot_mask.bool()[:, :, None], -1e4)
-        return ReasoningOutput(action_logits, slot_gate_logits, slot_states, memory, high)
+        slot_gate_logits = slot_gate_logits.masked_fill(
+            ~slot_mask.bool()[:, :, None], -1e4
+        )
+        return ReasoningOutput(
+            action_logits, slot_gate_logits, slot_states, memory, high
+        )
 
 
 class SmallValueDecoder(nn.Module):
@@ -175,21 +206,36 @@ class SmallValueDecoder(nn.Module):
         source_mask: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         if slot_states.ndim != 3 or memory.ndim != 3:
-            raise ValueError("slot_states and memory must have [batch, length, width] shape")
+            raise ValueError(
+                "slot_states and memory must have [batch, length, width] shape"
+            )
         batch, slots, width = slot_states.shape
         if width != self.width or memory.shape[0] != batch or memory.shape[2] != width:
             raise ValueError("decoder hidden widths or batch sizes do not match")
-        if source_ids.shape != memory.shape[:2] or source_mask.shape != source_ids.shape:
+        if (
+            source_ids.shape != memory.shape[:2]
+            or source_mask.shape != source_ids.shape
+        ):
             raise ValueError("source IDs and mask must match memory")
         if slots < 1 or not torch.all(source_mask.bool().any(dim=1)):
             raise ValueError("at least one slot and one source token are required")
         if torch.any(source_ids < 0) or torch.any(source_ids >= self.vocab_size):
             raise ValueError("source token ID is outside decoder vocabulary")
-        expanded_memory = memory[:, None].expand(-1, slots, -1, -1).reshape(
-            batch * slots, memory.shape[1], width,
+        expanded_memory = (
+            memory[:, None]
+            .expand(-1, slots, -1, -1)
+            .reshape(
+                batch * slots,
+                memory.shape[1],
+                width,
+            )
         )
-        expanded_ids = source_ids[:, None].expand(-1, slots, -1).reshape(batch * slots, -1)
-        expanded_mask = source_mask.bool()[:, None].expand(-1, slots, -1).reshape(batch * slots, -1)
+        expanded_ids = (
+            source_ids[:, None].expand(-1, slots, -1).reshape(batch * slots, -1)
+        )
+        expanded_mask = (
+            source_mask.bool()[:, None].expand(-1, slots, -1).reshape(batch * slots, -1)
+        )
         hidden = torch.tanh(self.initial(slot_states.reshape(batch * slots, width)))
         keys = self.memory_key(expanded_memory)
         return hidden, expanded_memory, keys, expanded_ids, expanded_mask
@@ -204,15 +250,19 @@ class SmallValueDecoder(nn.Module):
         source_mask: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         scores = torch.bmm(keys, self.query(hidden)[:, :, None]).squeeze(-1)
-        scores = scores.float().div(self.width ** 0.5).masked_fill(~source_mask, -1e4)
+        scores = scores.float().div(self.width**0.5).masked_fill(~source_mask, -1e4)
         attention = torch.softmax(scores, dim=-1)
         context = torch.bmm(attention.to(memory.dtype)[:, None, :], memory).squeeze(1)
         token_embedding = self.embedding(token).to(context.dtype)
         hidden = self.cell(torch.cat((token_embedding, context), dim=-1), hidden)
-        logits = F.linear(self.output_norm(hidden), self.embedding.weight, self.output_bias)
+        logits = F.linear(
+            self.output_norm(hidden), self.embedding.weight, self.output_bias
+        )
         generated = torch.softmax(logits.float(), dim=-1)
         copied = torch.zeros_like(generated).scatter_add_(1, source_ids, attention)
-        gate = torch.sigmoid(self.generate_gate(torch.cat((hidden, context), dim=-1))).float()
+        gate = torch.sigmoid(
+            self.generate_gate(torch.cat((hidden, context), dim=-1))
+        ).float()
         probabilities = gate * generated + (1 - gate) * copied
         return probabilities, hidden
 
@@ -232,14 +282,26 @@ class SmallValueDecoder(nn.Module):
             raise ValueError("invalid BOS token or decoding length")
         batch, slots, _ = slot_states.shape
         hidden, expanded_memory, keys, expanded_ids, expanded_mask = self._prepare(
-            slot_states, memory, source_ids, source_mask,
+            slot_states,
+            memory,
+            source_ids,
+            source_mask,
         )
-        token = torch.full((batch * slots,), bos_token_id, device=source_ids.device, dtype=torch.long)
+        token = torch.full(
+            (batch * slots,), bos_token_id, device=source_ids.device, dtype=torch.long
+        )
         result = []
-        finished = torch.zeros(batch * slots, device=source_ids.device, dtype=torch.bool)
+        finished = torch.zeros(
+            batch * slots, device=source_ids.device, dtype=torch.bool
+        )
         for _ in range(max_new_tokens):
             probabilities, hidden = self._step(
-                token, hidden, expanded_memory, keys, expanded_ids, expanded_mask,
+                token,
+                hidden,
+                expanded_memory,
+                keys,
+                expanded_ids,
+                expanded_mask,
             )
             token = probabilities.argmax(dim=-1)
             result.append(token)
@@ -265,16 +327,28 @@ class SmallValueDecoder(nn.Module):
         if slot_states.shape[:2] != (batch, slots) or steps < 1:
             raise ValueError("target IDs do not match slot states")
         hidden, expanded_memory, keys, expanded_ids, expanded_mask = self._prepare(
-            slot_states, memory, source_ids, source_mask,
+            slot_states,
+            memory,
+            source_ids,
+            source_mask,
         )
         target = target_ids.reshape(batch * slots, steps)
-        token = torch.full((batch * slots,), bos_token_id, device=target.device, dtype=torch.long)
+        token = torch.full(
+            (batch * slots,), bos_token_id, device=target.device, dtype=torch.long
+        )
         losses = []
         for step in range(steps):
             probabilities, hidden = self._step(
-                token, hidden, expanded_memory, keys, expanded_ids, expanded_mask,
+                token,
+                hidden,
+                expanded_memory,
+                keys,
+                expanded_ids,
+                expanded_mask,
             )
-            gold_probability = probabilities.gather(1, target[:, step:step + 1]).squeeze(1)
+            gold_probability = probabilities.gather(
+                1, target[:, step : step + 1]
+            ).squeeze(1)
             losses.append(-gold_probability.clamp_min(1e-12).log())
             token = target[:, step]
         losses = torch.stack(losses, dim=-1)
@@ -287,7 +361,9 @@ class SmallValueDecoder(nn.Module):
 class StructuredAgent(nn.Module):
     """Encoder, recurrent workspace, typed heads, and optional value decoder."""
 
-    def __init__(self, encoder: nn.Module, config: ReasoningConfig, vocab_size: int) -> None:
+    def __init__(
+        self, encoder: nn.Module, config: ReasoningConfig, vocab_size: int
+    ) -> None:
         super().__init__()
         self.encoder = encoder
         self.reasoner = ReasoningHead(config)
@@ -312,7 +388,11 @@ class StructuredAgent(nn.Module):
             raise ValueError("generated_slot_indices must be a nonempty vector")
         slots = result.slot_states.index_select(1, generated_slot_indices)
         values = self.decoder.generate(
-            slots, result.memory, input_ids, attention_mask,
-            bos_token_id=bos_token_id, max_new_tokens=max_new_tokens,
+            slots,
+            result.memory,
+            input_ids,
+            attention_mask,
+            bos_token_id=bos_token_id,
+            max_new_tokens=max_new_tokens,
         )
         return result, values

@@ -57,3 +57,12 @@ create missing input roots as a side effect of Docker bind mounts.
 
 Entrypoints expose `main(args)`. Parse CLI arguments inside the
 `if __name__ == "__main__":` block, then call `main(args)`.
+
+## Code style
+
+Run `ruff format .` and `ruff check .` using `requirements-dev.txt`. Follow the
+88-character formatter and import-order settings in `pyproject.toml`. Keep
+`main(args)` entrypoints. Prefer named module functions or methods over nested
+business helpers; keep closures only when they make scoped state clearer.
+Do not format frozen `tests/reference/` fixtures. Model source formatting must
+retain its executable syntax and compatibility with existing feature-bank IDs.

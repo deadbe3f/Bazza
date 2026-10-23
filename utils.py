@@ -1,16 +1,26 @@
 """Small shared IO, identity and precision helpers."""
-from contextlib import contextmanager, nullcontext
+
 import hashlib
 import json
 import os
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
+
 import torch
 
 ROOT = Path(__file__).resolve().parent
 
 
 def digest(value):
-    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+    return hashlib.sha256(
+        json.dumps(
+            value,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode()
+    ).hexdigest()
 
 
 def file_hash(path):
@@ -45,12 +55,17 @@ def atomic_save(value, path):
 
 
 def autocast(device, precision="bf16"):
-    return torch.autocast("cuda", dtype=torch.bfloat16) if torch.device(device).type == "cuda" and precision == "bf16" else nullcontext()
+    return (
+        torch.autocast("cuda", dtype=torch.bfloat16)
+        if torch.device(device).type == "cuda" and precision == "bf16"
+        else nullcontext()
+    )
 
 
 @contextmanager
 def job_lock(directory):
     import fcntl
+
     with (Path(directory) / ".job.lock").open("a") as stream:
         fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
         yield

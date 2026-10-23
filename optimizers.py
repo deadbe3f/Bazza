@@ -27,7 +27,9 @@ def orthogonal_update(value, steps=5):
 
 class MuonMatrices(torch.optim.Optimizer):
     def __init__(self, groups, lr, weight_decay):
-        super().__init__(groups, dict(lr=lr, weight_decay=weight_decay, momentum=.95, row_blocks=1))
+        super().__init__(
+            groups, dict(lr=lr, weight_decay=weight_decay, momentum=0.95, row_blocks=1)
+        )
 
     @torch.no_grad()
     def step(self, closure=None):
@@ -51,7 +53,7 @@ class MuonMatrices(torch.optim.Optimizer):
                 if blocks > 1:
                     update = update.reshape(blocks, rows // blocks, columns)
                 update = orthogonal_update(update).reshape_as(parameter)
-                scale = math.sqrt(max(1., (rows / blocks) / columns))
+                scale = math.sqrt(max(1.0, (rows / blocks) / columns))
                 parameter.mul_(1 - group["lr"] * group["weight_decay"])
                 parameter.add_(update, alpha=-group["lr"] * scale)
 
@@ -74,19 +76,41 @@ class MuonAdamW(torch.optim.Optimizer):
         self.param_groups = self.muon.param_groups + self.adamw.param_groups
 
 
-def make_optimizer(model, name="adamw", lr=1e-4, weight_decay=.01, beta2=.999,
-                   muon_lr=.01, fused=False, foreach=None):
+def make_optimizer(
+    model,
+    name="adamw",
+    lr=1e-4,
+    weight_decay=0.01,
+    beta2=0.999,
+    muon_lr=0.01,
+    fused=False,
+    foreach=None,
+):
     if name == "adamw":
-        return torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay,
-                                 betas=(.9, beta2), fused=fused, foreach=foreach)
+        return torch.optim.AdamW(
+            model.parameters(),
+            lr=lr,
+            weight_decay=weight_decay,
+            betas=(0.9, beta2),
+            fused=fused,
+            foreach=foreach,
+        )
     if name != "muon":
         raise ValueError("Unknown optimizer: " + name)
     matrices, qkv, other = [], [], []
     for key, parameter in model.named_parameters():
         # Recurrent gates and output classifiers stay on AdamW. Split packed
         # attention Q/K/V matrices for independent orthogonalization.
-        auxiliary = any(part in key for part in ("high_update.", "update.weight_ih", "update.weight_hh",
-                                                 "action_score.", "slot_gate."))
+        auxiliary = any(
+            part in key
+            for part in (
+                "high_update.",
+                "update.weight_ih",
+                "update.weight_hh",
+                "action_score.",
+                "slot_gate.",
+            )
+        )
         if parameter.ndim != 2 or auxiliary:
             other.append(parameter)
         elif key.endswith("in_proj_weight"):
@@ -94,6 +118,15 @@ def make_optimizer(model, name="adamw", lr=1e-4, weight_decay=.01, beta2=.999,
         else:
             matrices.append(parameter)
     groups = [{"params": matrices, "row_blocks": 1}, {"params": qkv, "row_blocks": 3}]
-    muon = MuonMatrices([group for group in groups if group["params"]], muon_lr, weight_decay)
-    adamw = torch.optim.AdamW(other, lr=lr, weight_decay=weight_decay, betas=(.9, beta2), fused=fused, foreach=foreach)
+    muon = MuonMatrices(
+        [group for group in groups if group["params"]], muon_lr, weight_decay
+    )
+    adamw = torch.optim.AdamW(
+        other,
+        lr=lr,
+        weight_decay=weight_decay,
+        betas=(0.9, beta2),
+        fused=fused,
+        foreach=foreach,
+    )
     return MuonAdamW(muon, adamw)

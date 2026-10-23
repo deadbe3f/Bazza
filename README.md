@@ -14,7 +14,7 @@ Load a trained decision checkpoint and supply a state and named questions:
 from systemone import SystemOne
 
 model = SystemOne.from_checkpoint(
-    "weights/bazza.pt",                    # trained decision head
+    "weights/bazza.pt",  # trained decision head
     backbone_path="weights/Gemma4-12B-it",  # backbone weights and tokenizer
     device="cuda",
 )
@@ -46,9 +46,9 @@ result = model(
     },
 )
 
-print(result["answers"]["refund"]["noul"])   # probability assigned to true
+print(result["answers"]["refund"]["noul"])  # probability assigned to true
 print(result["answers"]["refund"]["value"])  # boolean decision
-print(result["answers"]["action"]["choice"]) # supplied candidate key
+print(result["answers"]["action"]["choice"])  # supplied candidate key
 print(result["answers"]["action"]["probabilities"])
 ```
 
@@ -320,3 +320,23 @@ updates, event ordering, checkpoint selection, training and evaluation resume,
 configuration portability, and dataset conversion. The cached retrain and
 external test results are reported in
 [the retrain report](docs/research/BAZZA_REFACTOR_RETRAIN_20261018.md).
+
+## Code style
+
+Development tools are listed in `requirements-dev.txt`. Format and lint with:
+
+```bash
+python -m pip install -r requirements-dev.txt
+ruff format .
+ruff check .
+
+# Check formatting without editing files:
+ruff format --check .
+```
+
+`pyproject.toml` configures an 88-character formatter line length, sorted imports,
+and basic PEP 8/error checks. Frozen reference implementations under
+`tests/reference/` and local run artifacts are excluded. Active model code is
+formatted; syntax-equivalence checks preserve compatibility with the original
+Gemma feature-bank source identity when only formatting has changed. Full run
+resume continues to require exact source identities.

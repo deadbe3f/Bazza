@@ -564,9 +564,12 @@
   "bundled_backbone": {
     "path": "model/gemma.py",
     "source_file": "models/gemma4_12b_pytorch/model.py",
-    "sha256": "e6eef82665a55340ca62e248d7aa3502d196e45b5689ab2e754166c8b2cef2d0",
-    "modifications": "none",
+    "sha256": "c6d1d195da4340065745dd83e5da16aa1cd8558c42c11371dc18460bbcd86bb1",
+    "modifications": "Ruff formatting and import ordering; executable syntax unchanged",
     "notice": "model/NOTICE.md",
-    "runtime_import": "model.gemma (local package)"
+    "runtime_import": "model.gemma (local package)",
+    "reference_sha256": "e6eef82665a55340ca62e248d7aa3502d196e45b5689ab2e754166c8b2cef2d0",
+    "reference_file": "tests/reference/gemma_model.py",
+    "executable_ast_sha256": "006a9dd7edc3f07f61edd34b1b65a7df0878b34bf83ebfd7a05e851baae6ab93"
   }
 }

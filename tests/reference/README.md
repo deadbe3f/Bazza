@@ -6,3 +6,7 @@ training commands. Production Bazza modules never import this directory.
 Original files and SHA-256 hashes are recorded in `docs/MIGRATION_SOURCE.json`.
 The complete research history remains in KneeJerk; unrelated experiments and
 frontend prototypes are not part of this repository.
+
+`gemma_model.py` preserves the standalone backbone source used by the original
+feature exports. The active model is formatted; tests compare executable syntax
+and retain the original SHA-256 identity for formatting-only compatibility.

@@ -1,4 +1,5 @@
 """Disposable JSON worker. Run only inside the network-disabled CPU container."""
+
 import ast
 import json
 import resource
@@ -15,16 +16,26 @@ def main():
     resource.setrlimit(resource.RLIMIT_NOFILE, (32, 32))
     for item in json.load(sys.stdin):
         try:
-            supplied=ast.literal_eval(item['input_literal'])
-            before=repr(supplied)
-            rendered=invocation(supplied)
-            result = call(item['code'], item['function'], supplied)
+            supplied = ast.literal_eval(item["input_literal"])
+            before = repr(supplied)
+            rendered = invocation(supplied)
+            result = call(item["code"], item["function"], supplied)
             # The legacy helper renders after the call; replace that rendering.
-            result['invocation']=rendered
-            out = {'ok': True, 'tag': item['tag'], 'supplied_input_literal': before, **result}
+            result["invocation"] = rendered
+            out = {
+                "ok": True,
+                "tag": item["tag"],
+                "supplied_input_literal": before,
+                **result,
+            }
         except BaseException as e:
-            out = {'ok': False, 'tag': item['tag'], 'error': type(e).__name__ + ': ' + str(e)[:120]}
+            out = {
+                "ok": False,
+                "tag": item["tag"],
+                "error": type(e).__name__ + ": " + str(e)[:120],
+            }
         print(json.dumps(out, ensure_ascii=False, allow_nan=False), flush=True)
 
 
-if __name__ == '__main__': main()
+if __name__ == "__main__":
+    main()
