@@ -29,10 +29,17 @@ def _interrupt(signum, frame):
     raise KeyboardInterrupt("signal " + str(signum))
 
 
-def main(args):
-    request = json.loads(args.request.read_text())
+def load_request(path):
+    """Read and validate the top-level decision request."""
+    request = json.loads(path.read_text())
     if set(request) != {"state", "questions"}:
         raise ValueError("Request requires exactly state and questions")
+
+    return request
+
+
+def resolve_backbone(args):
+    """Resolve weights from the CLI or optional Python settings."""
     backbone = args.backbone_path
     if backbone is None:
         if args.config is None:
@@ -42,20 +49,13 @@ def main(args):
         from configuration import load_config
 
         backbone = load_config(args.config).backbone_path
-    if args.plan_only:
-        print(
-            json.dumps(
-                {
-                    "checkpoint": str(args.checkpoint),
-                    "backbone_path": str(backbone),
-                    "request": request,
-                    "device": args.device,
-                },
-                indent=2,
-            )
-        )
-        return
-    identity = {
+
+    return backbone
+
+
+def request_identity(args, backbone, request):
+    """Record the inputs and implementation used for resumable inference."""
+    return {
         "checkpoint_sha256": file_hash(args.checkpoint),
         "request_sha256": digest(request),
         "backbone_path": str(Path(backbone).resolve()),
@@ -89,6 +89,96 @@ def main(args):
         },
     }
 
+
+def prepare_request(args, root, request, identity):
+    """Create a request plan or verify an exact resume."""
+    plan = root / "request-plan.json"
+    if plan.exists():
+        if not args.resume or json.loads(plan.read_text()) != identity:
+            raise ValueError(
+                "Existing/different demo; use exact --resume or a fresh output directory"
+            )
+    elif args.resume:
+        raise ValueError("No request to resume")
+    else:
+        atomic_json(plan, identity)
+        atomic_json(root / "request.json", request)
+
+
+def load_response(root):
+    """Load a completed response after verifying its checksum."""
+    marker = json.loads((root / "complete.json").read_text())
+    if marker["response_sha256"] != file_hash(root / "response.json"):
+        raise ValueError("Saved response checksum differs")
+    return json.loads((root / "response.json").read_text())
+
+
+def infer_and_save(args, backbone, request, root):
+    """Run inference with status, timing, and interruption handling."""
+    atomic_json(
+        root / "status.json",
+        {"phase": "loading_model", "updated_at": time.time()},
+    )
+
+    handlers = {
+        sig: signal.signal(sig, _interrupt) for sig in (signal.SIGINT, signal.SIGTERM)
+    }
+    started = time.perf_counter()
+
+    try:
+        result = _infer(args, backbone, request)
+        atomic_json(root / "response.json", result)
+        atomic_json(
+            root / "complete.json",
+            {
+                "response_sha256": file_hash(root / "response.json"),
+                "questions": len(result["answers"]),
+                "seconds": time.perf_counter() - started,
+            },
+        )
+        atomic_json(
+            root / "status.json",
+            {"phase": "completed", "updated_at": time.time()},
+        )
+    except BaseException as error:
+        atomic_json(
+            root / "status.json",
+            {
+                "phase": "stopped"
+                if isinstance(error, KeyboardInterrupt)
+                else "failed",
+                "error": str(error),
+                "updated_at": time.time(),
+            },
+        )
+        raise
+    finally:
+        for sig, handler in handlers.items():
+            signal.signal(sig, handler)
+
+    return result
+
+
+def main(args):
+    request = load_request(args.request)
+    backbone = resolve_backbone(args)
+
+    if args.plan_only:
+        print(
+            json.dumps(
+                {
+                    "checkpoint": str(args.checkpoint),
+                    "backbone_path": str(backbone),
+                    "request": request,
+                    "device": args.device,
+                },
+                indent=2,
+            )
+        )
+        return
+
+    identity = request_identity(args, backbone, request)
+
     if args.output_dir is None:
         if args.resume:
             raise ValueError("--resume requires --output-dir")
@@ -96,64 +186,15 @@ def main(args):
     else:
         root = args.output_dir
         root.mkdir(parents=True, exist_ok=True)
-        with job_lock(root):
-            plan = root / "request-plan.json"
-            if plan.exists():
-                if not args.resume or json.loads(plan.read_text()) != identity:
-                    raise ValueError(
-                        "Existing/different demo; use exact --resume or a fresh output directory"
-                    )
-            elif args.resume:
-                raise ValueError("No request to resume")
-            else:
-                atomic_json(plan, identity)
-                atomic_json(root / "request.json", request)
-            if (root / "complete.json").exists():
-                marker = json.loads((root / "complete.json").read_text())
-                if marker["response_sha256"] != file_hash(root / "response.json"):
-                    raise ValueError("Saved response checksum differs")
-                result = json.loads((root / "response.json").read_text())
-            else:
-                atomic_json(
-                    root / "status.json",
-                    {"phase": "loading_model", "updated_at": time.time()},
-                )
 
-                handlers = {
-                    sig: signal.signal(sig, _interrupt)
-                    for sig in (signal.SIGINT, signal.SIGTERM)
-                }
-                started = time.perf_counter()
-                try:
-                    result = _infer(args, backbone, request)
-                    atomic_json(root / "response.json", result)
-                    atomic_json(
-                        root / "complete.json",
-                        {
-                            "response_sha256": file_hash(root / "response.json"),
-                            "questions": len(result["answers"]),
-                            "seconds": time.perf_counter() - started,
-                        },
-                    )
-                    atomic_json(
-                        root / "status.json",
-                        {"phase": "completed", "updated_at": time.time()},
-                    )
-                except BaseException as error:
-                    atomic_json(
-                        root / "status.json",
-                        {
-                            "phase": "stopped"
-                            if isinstance(error, KeyboardInterrupt)
-                            else "failed",
-                            "error": str(error),
-                            "updated_at": time.time(),
-                        },
-                    )
-                    raise
-                finally:
-                    for sig, handler in handlers.items():
-                        signal.signal(sig, handler)
+        with job_lock(root):
+            prepare_request(args, root, request, identity)
+
+            if (root / "complete.json").exists():
+                result = load_response(root)
+            else:
+                result = infer_and_save(args, backbone, request, root)
+
     print(json.dumps(result, indent=2, allow_nan=False))
     return result
 

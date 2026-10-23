@@ -18,8 +18,8 @@ Do not commit weights, datasets, screenshots from private environments, or
 raw training outputs. Store these under ignored local paths. Use the
 RunPodML-based Docker CUDA stack for GPU runs and record the image tag.
 
-The model and repository are named Bazza; the dataset is Groundbeef. Follow docs/plans/BAZZA_REFACTOR.md for the agreed implementation: a small
-Trainer with train(), explicit callbacks, metrics.py, and model/model.py.
+Keep the implementation small: Trainer with train(), explicit callbacks,
+metrics.py, and model/model.py.
 Do not rewrite source files belonging to an active hash-pinned experiment.
 Preserve historical checkpoints and source identities; incompatible changes need
 a fresh run directory.
@@ -33,16 +33,16 @@ incompatible inputs/configuration. Training restores optimizer, schedule, RNG
 and data cursor; evaluation/data prep resumes completed requests/shards without
 duplicates. Keep durable status, logs, timing and exit markers in a known job
 directory. Docker owns detached job lifetime; do not use host nohup watchers.
-Use `scripts/lib/docker_job.sh` for signal forwarding and durable console/exit
+Use `docker_job.sh` for signal forwarding and durable console/exit
 markers where applicable. Never silently overwrite previous run directories.
 
 ## Current organization
 
 New code uses the public root entrypoints, `model/`, and `features/`. Do not
 import `tests/reference/legacy` into the core. Those byte-identical source files are test-only comparison fixtures; old runs
-resume in their original KneeJerk checkout. New plans go in `docs/plans/`;
-measurements go in `docs/research/`. Use the shared Docker job launcher for new
-long runs. The hybrid AR/decision design is a plan, not implemented behavior.
+resume in their original research checkout. Use the shared Docker job launcher
+for new long runs. Keep research plans, experiment reports, dataset construction,
+and one-off tools in the research repository, outside this standalone model repo.
 
 Training settings are authored as Python `Config` values in config.py (or
 an alternative .py settings file). Model construction remains in training code.
@@ -66,3 +66,13 @@ Run `ruff format .` and `ruff check .` using `requirements-dev.txt`. Follow the
 business helpers; keep closures only when they make scoped state clearer.
 Do not format frozen `tests/reference/` fixtures. Model source formatting must
 retain its executable syntax and compatibility with existing feature-bank IDs.
+
+Separate logical stages within functions with a single blank line, especially
+between setup, validation, model construction, execution, and reporting. Keep
+closely related statements together. Ruff preserves these code paragraphs but
+does not infer where they belong; review readability after formatting.
+
+Keep entrypoint main(args) functions focused on orchestration. Extract distinct
+stages such as input loading, identity checks, execution, and reporting into
+named module functions. Apply the same approach to large methods when stages
+have separate responsibilities; avoid one-line wrappers or nested business helpers.

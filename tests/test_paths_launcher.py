@@ -50,7 +50,7 @@ class PortablePathsTests(unittest.TestCase):
                 config.backbone_path, clone / "build/weights/Gemma4-12B-it"
             )
             self.assertEqual(config.overfit_url, "")
-            for file in ("config.py", "scripts/run.sh", ".env.example"):
+            for file in ("config.py", "run.sh", ".env.example"):
                 self.assertNotIn("/media/adrian", (ROOT / file).read_text())
 
     def test_environment_overrides_derive_settings_and_stay_out_of_hf_export(self):
@@ -129,7 +129,7 @@ else:raise SystemExit('unexpected docker invocation')
             result = subprocess.run(
                 [
                     "bash",
-                    str(ROOT / "scripts/run.sh"),
+                    str(ROOT / "run.sh"),
                     "train",
                     "--config",
                     str(config),

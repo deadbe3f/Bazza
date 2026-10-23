@@ -7,7 +7,6 @@ extend-exclude = ["build", "tests/reference"]
 select = ["E4", "E7", "E9", "F", "I", "W"]
 
 [tool.ruff.lint.per-file-ignores]
-# Source-checkout examples and frozen-oracle tests add their import roots first.
-"examples/decision.py" = ["E402"]
+# Frozen-oracle tests add their import roots first.
 "tests/test_data_features.py" = ["E402"]
 "tests/test_parity.py" = ["E402"]

@@ -36,6 +36,49 @@ def metrics(logits, rows):
     return result
 
 
+def _group_reports(sources, tasks, classes):
+    """Aggregate source, task, and schema-class diagnostics."""
+    source_report = {k: _aggregate(v) for k, v in sorted(sources.items())}
+    task_report = {k: _aggregate(v) for k, v in sorted(tasks.items())}
+    class_report = defaultdict(dict)
+    task_recalls = defaultdict(list)
+    for (task, schema, name), (support, hits) in sorted(classes.items()):
+        class_report[schema][name] = {
+            "accepted_target_support": support,
+            "recall": hits / support,
+        }
+        task_recalls[task].append(hits / support)
+    for task, recalls in task_recalls.items():
+        task_report[task]["macro_class_recall"] = sum(recalls) / len(recalls)
+        task_report[task]["supported_schema_classes"] = len(recalls)
+    for source in source_report:
+        entries = [
+            v for task, v in task_report.items() if task.startswith(source + "/")
+        ]
+        source_report[source]["macro_task_accuracy"] = sum(
+            v["accuracy"] for v in entries
+        ) / len(entries)
+        source_report[source]["macro_task_cross_entropy"] = sum(
+            v["cross_entropy"] for v in entries
+        ) / len(entries)
+
+    return source_report, task_report, class_report
+
+
+def _vulnerability_report(counts):
+    """Summarize vulnerability detection and type classification counts."""
+    positives, negatives = (
+        counts["positive_rows"],
+        counts["negative_rows"],
+    )
+    return {
+        **dict(counts),
+        "recall": counts["tp"] / max(1, positives),
+        "false_positive_rate": counts["fp"] / max(1, negatives),
+        "type_accuracy_on_vulnerable": counts["type_correct"] / max(1, positives),
+    }
+
+
 def breakdown(logits, records, temperature=1.0, source_shares=None):
     sources, tasks, classes = (
         defaultdict(list),
@@ -75,29 +118,7 @@ def breakdown(logits, records, temperature=1.0, source_shares=None):
             if positive:
                 vulnerabilities["type_correct"] += correct
 
-    source_report = {k: _aggregate(v) for k, v in sorted(sources.items())}
-    task_report = {k: _aggregate(v) for k, v in sorted(tasks.items())}
-    class_report = defaultdict(dict)
-    task_recalls = defaultdict(list)
-    for (task, schema, name), (support, hits) in sorted(classes.items()):
-        class_report[schema][name] = {
-            "accepted_target_support": support,
-            "recall": hits / support,
-        }
-        task_recalls[task].append(hits / support)
-    for task, recalls in task_recalls.items():
-        task_report[task]["macro_class_recall"] = sum(recalls) / len(recalls)
-        task_report[task]["supported_schema_classes"] = len(recalls)
-    for source in source_report:
-        entries = [
-            v for task, v in task_report.items() if task.startswith(source + "/")
-        ]
-        source_report[source]["macro_task_accuracy"] = sum(
-            v["accuracy"] for v in entries
-        ) / len(entries)
-        source_report[source]["macro_task_cross_entropy"] = sum(
-            v["cross_entropy"] for v in entries
-        ) / len(entries)
+    source_report, task_report, class_report = _group_reports(sources, tasks, classes)
     shares = source_shares or {k: 1 / len(source_report) for k in source_report}
     denominator = sum(shares.get(k, 0.0) for k in source_report)
     if denominator <= 0:
@@ -116,17 +137,7 @@ def breakdown(logits, records, temperature=1.0, source_shares=None):
         "selection_definition": "declared source-weighted mean of unweighted per-task cross entropy; observed task classes reported separately",
     }
     if vulnerabilities:
-        positives, negatives = (
-            vulnerabilities["positive_rows"],
-            vulnerabilities["negative_rows"],
-        )
-        result["vulnerability"] = {
-            **dict(vulnerabilities),
-            "recall": vulnerabilities["tp"] / max(1, positives),
-            "false_positive_rate": vulnerabilities["fp"] / max(1, negatives),
-            "type_accuracy_on_vulnerable": vulnerabilities["type_correct"]
-            / max(1, positives),
-        }
+        result["vulnerability"] = _vulnerability_report(vulnerabilities)
     return result
 
 

@@ -1,5 +1,4 @@
 # Install the PyTorch build appropriate for your CPU/CUDA environment.
-# The previously validated Docker runtime is documented in docs/REFACTOR_STATUS.md.
 torch
 numpy
 safetensors

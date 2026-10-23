@@ -65,7 +65,7 @@ def prepare(config, device, *, settings_path=None):
                 row["target"] = row[config.target_key]
     backbone = make_backbone(config, selection)
     files = [*ROOT.glob("*.py"), *ROOT.glob("model/*.py"), *ROOT.glob("features/*.py")]
-    files += [ROOT / "scripts/run.sh", ROOT / "scripts/lib/docker_job.sh"]
+    files += [ROOT / "run.sh", ROOT / "docker_job.sh"]
     identity = {
         "configuration": config.to_dict(),
         "selection_sha256": file_hash(config.data_selection),

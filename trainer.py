@@ -224,76 +224,9 @@ class Trainer:
             ):
                 self._validate_panels(panels, initial=True)
             for epoch in range(self.state["completed_epochs"], epochs):
-                self.state["epoch"] = epoch
-                batches = train_batches(epoch)
-                self.emit("epoch_start", stage="train", epoch=epoch)
-                # Interrupted validation is replayed before another optimizer update.
-                cursor = self.state["batch_cursor"]
-                if (
-                    panels
-                    and cursor
-                    and self.state["last_validation_examples"]
-                    != self.state["examples_seen"]
-                ):
-                    previous = self.state["examples_seen"] - len(batches[cursor - 1])
-                    if cursor == len(batches) or self._crossed(
-                        previous, validation_every_examples
-                    ):
-                        self._validate_panels(panels)
-                bar = tqdm(
-                    total=sum(len(r) for r in batches),
-                    initial=sum(len(r) for r in batches[:cursor]),
-                    desc="Bazza epoch " + str(epoch + 1),
-                    unit="example",
-                    disable=not self.progress,
+                self._train_epoch(
+                    train_batches, panels, epoch, validation_every_examples
                 )
-                try:
-                    if hasattr(self.prepare_batch, "iter_batches"):
-                        prepared = self.prepare_batch.iter_batches(
-                            batches, cursor, "train"
-                        )
-                    else:
-                        prepared = (
-                            (i, self.prepare_batch(batches[i], "train"))
-                            for i in range(cursor, len(batches))
-                        )
-                    for index, batch in prepared:
-                        if self.state["stop_requested"]:
-                            raise StopRequested()
-                        records = batches[index]
-                        before = self.state["examples_seen"]
-                        self.emit(
-                            "batch_start", stage="train", batch=batch, rows=records
-                        )
-                        result = self.train_batch(batch)
-                        self.state["batch_cursor"] = index + 1
-                        self.emit(
-                            "batch_end", stage="train", rows=records, metrics=result
-                        )
-                        bar.update(len(records))
-                        bar.set_postfix(
-                            loss=f"{result['loss']:.4f}",
-                            lr=f"{result['learning_rate']:.2g}",
-                        )
-                        self.flush_saves()
-                        if (
-                            panels
-                            and not self.state["stop_requested"]
-                            and (
-                                self._crossed(before, validation_every_examples)
-                                or index + 1 == len(batches)
-                            )
-                        ):
-                            self._validate_panels(panels)
-                finally:
-                    if "prepared" in locals() and hasattr(prepared, "close"):
-                        prepared.close()
-                    bar.close()
-                if self.state["stop_requested"]:
-                    raise StopRequested()
-                self.state.update(completed_epochs=epoch + 1, batch_cursor=0)
-                self.emit("epoch_end", stage="train", epoch=epoch)
-                self.flush_saves()
         except StopRequested:
             pass
         except BaseException as error:
@@ -304,6 +237,83 @@ class Trainer:
             raise
         self.emit("train_end", stage="train")
         self.flush_saves()
+
+    def _train_epoch(self, train_batches, panels, epoch, validation_every_examples):
+        """Resume the epoch cursor, replay pending validation, and close prefetch resources."""
+        self.state["epoch"] = epoch
+        batches = train_batches(epoch)
+        self.emit("epoch_start", stage="train", epoch=epoch)
+
+        # Interrupted validation is replayed before another optimizer update.
+        cursor = self.state["batch_cursor"]
+        if (
+            panels
+            and cursor
+            and self.state["last_validation_examples"] != self.state["examples_seen"]
+        ):
+            previous = self.state["examples_seen"] - len(batches[cursor - 1])
+            if cursor == len(batches) or self._crossed(
+                previous, validation_every_examples
+            ):
+                self._validate_panels(panels)
+
+        bar = tqdm(
+            total=sum(len(r) for r in batches),
+            initial=sum(len(r) for r in batches[:cursor]),
+            desc="Bazza epoch " + str(epoch + 1),
+            unit="example",
+            disable=not self.progress,
+        )
+
+        prepared = None
+        try:
+            if hasattr(self.prepare_batch, "iter_batches"):
+                prepared = self.prepare_batch.iter_batches(batches, cursor, "train")
+            else:
+                prepared = (
+                    (i, self.prepare_batch(batches[i], "train"))
+                    for i in range(cursor, len(batches))
+                )
+            self._train_updates(
+                prepared, batches, panels, validation_every_examples, bar
+            )
+        finally:
+            if hasattr(prepared, "close"):
+                prepared.close()
+            bar.close()
+
+        if self.state["stop_requested"]:
+            raise StopRequested()
+        self.state.update(completed_epochs=epoch + 1, batch_cursor=0)
+        self.emit("epoch_end", stage="train", epoch=epoch)
+        self.flush_saves()
+
+    def _train_updates(self, prepared, batches, panels, validation_every_examples, bar):
+        """Commit optimizer updates and run validation at the requested boundaries."""
+        for index, batch in prepared:
+            if self.state["stop_requested"]:
+                raise StopRequested()
+            records = batches[index]
+            before = self.state["examples_seen"]
+            self.emit("batch_start", stage="train", batch=batch, rows=records)
+            result = self.train_batch(batch)
+            self.state["batch_cursor"] = index + 1
+            self.emit("batch_end", stage="train", rows=records, metrics=result)
+            bar.update(len(records))
+            bar.set_postfix(
+                loss=f"{result['loss']:.4f}",
+                lr=f"{result['learning_rate']:.2g}",
+            )
+            self.flush_saves()
+            if (
+                panels
+                and not self.state["stop_requested"]
+                and (
+                    self._crossed(before, validation_every_examples)
+                    or index + 1 == len(batches)
+                )
+            ):
+                self._validate_panels(panels)
 
     def _crossed(self, previous, interval):
         return bool(

@@ -76,6 +76,71 @@ class RunLog:
         self.offset = self.path.stat().st_size
         self.flush()
 
+    def _get_project(self):
+        """Find or create the dashboard project, including creation races."""
+        projects = self.request("GET", "/projects")
+        project = next((p for p in projects if p["name"] == self.project), None)
+        if project is None:
+            try:
+                project = self.request("POST", "/projects", {"name": self.project})
+            except urllib.error.HTTPError as error:
+                if error.code != 409:
+                    raise
+                project = next(
+                    p
+                    for p in self.request("GET", "/projects")
+                    if p["name"] == self.project
+                )
+
+        return project
+
+    def _get_run(self, project):
+        """Find or create the dashboard run without duplicating a lost response."""
+        meta = json.loads(self.meta_path.read_text())
+        # Reuse a run if creation succeeded but the response was lost.
+        run = next(
+            (
+                r
+                for r in self.request("GET", f"/projects/{project['id']}/runs")
+                if r["name"] == meta["name"]
+                and (
+                    json.loads(r["config"])
+                    if isinstance(r["config"], str)
+                    else r["config"]
+                )
+                == meta["config"]
+            ),
+            None,
+        )
+        if run is None:
+            run = self.request(
+                "POST",
+                f"/projects/{project['id']}/runs",
+                {
+                    "name": meta["name"],
+                    "config": meta["config"],
+                    "tags": ["gemma4", "frozen-backbone", "sweep"],
+                },
+            )
+
+        return run
+
+    def _replay_metrics(self, remote):
+        """Publish committed local events and persist the last acknowledged offset."""
+        endpoint = f"/runs/{remote['run_id']}"
+        if self.path.exists():
+            with self.path.open("rb") as stream:
+                stream.seek(remote["offset"])
+                for line in stream:
+                    event = json.loads(line)
+                    self.request(
+                        "POST",
+                        endpoint + "/metrics",
+                        {"step": event["step"], "values": event["values"]},
+                    )
+                    remote["offset"] += len(line)
+                    atomic_json(self.remote_path, remote)
+
     def flush(self, force=False):
         if not self.url or (not force and time.monotonic() < self.next_retry):
             return not self.url
@@ -88,62 +153,12 @@ class RunLog:
             if remote.get("url") != self.url:
                 remote = {}
             if not remote:
-                projects = self.request("GET", "/projects")
-                project = next((p for p in projects if p["name"] == self.project), None)
-                if project is None:
-                    try:
-                        project = self.request(
-                            "POST", "/projects", {"name": self.project}
-                        )
-                    except urllib.error.HTTPError as error:
-                        if error.code != 409:
-                            raise
-                        project = next(
-                            p
-                            for p in self.request("GET", "/projects")
-                            if p["name"] == self.project
-                        )
-                meta = json.loads(self.meta_path.read_text())
-                # Reuse a run if creation succeeded but the response was lost.
-                run = next(
-                    (
-                        r
-                        for r in self.request("GET", f"/projects/{project['id']}/runs")
-                        if r["name"] == meta["name"]
-                        and (
-                            json.loads(r["config"])
-                            if isinstance(r["config"], str)
-                            else r["config"]
-                        )
-                        == meta["config"]
-                    ),
-                    None,
-                )
-                if run is None:
-                    run = self.request(
-                        "POST",
-                        f"/projects/{project['id']}/runs",
-                        {
-                            "name": meta["name"],
-                            "config": meta["config"],
-                            "tags": ["gemma4", "frozen-backbone", "sweep"],
-                        },
-                    )
+                project = self._get_project()
+                run = self._get_run(project)
                 remote = {"url": self.url, "run_id": run["id"], "offset": 0}
                 atomic_json(self.remote_path, remote)
+            self._replay_metrics(remote)
             endpoint = f"/runs/{remote['run_id']}"
-            if self.path.exists():
-                with self.path.open("rb") as stream:
-                    stream.seek(remote["offset"])
-                    for line in stream:
-                        event = json.loads(line)
-                        self.request(
-                            "POST",
-                            endpoint + "/metrics",
-                            {"step": event["step"], "values": event["values"]},
-                        )
-                        remote["offset"] += len(line)
-                        atomic_json(self.remote_path, remote)
             self.request("PATCH", endpoint, {"status": self.status})
             self.next_retry = 0.0
             self.warned = False

@@ -64,8 +64,11 @@ training configuration are required. Overlong inputs are rejected without
 truncation. `model.model` exposes the underlying PyTorch `Bazza` instance.
 This is a Python API using the System 1 request schema; no HTTP server is started.
 
-The complete example is in `examples/decision.py`, with an editable request in
-`examples/decision.json`. The CLI loads the same API and accepts a new request:
+The self-contained example in `decision.py` defines the state and
+questions inline. Run it from the repository root with `python decision.py`,
+with `BAZZA_CHECKPOINT` and `BAZZA_BACKBONE_PATH` set to your weights.
+The CLI uses the same API with a JSON request file, such as
+`examples/decision.json`:
 
 ```bash
 python demo.py \
@@ -74,7 +77,7 @@ python demo.py \
   --request examples/decision.json
 
 # Docker execution, durable response and job controls:
-bash scripts/run.sh demo --env-file .env.local \
+bash run.sh demo --env-file .env.local \
   --checkpoint /path/to/bazza.pt \
   --backbone-path /path/to/Gemma4-12B-it \
   --request examples/decision.json \
@@ -116,7 +119,8 @@ callbacks.py         checkpointing, early stopping, and logging callbacks
 evaluate.py          evaluation and resumable prediction storage
 demo.py              load a model and answer a new JSON request
 systemone.py         state/questions decision API
-examples/            model-loading example and sample request
+decision.py          self-contained model-loading and decision example
+examples/            sample JSON request
 data.py              input serialization, collation, and batching
 losses.py            hard- and soft-target cross-entropy
 metrics.py           accuracy, cross-entropy, and grouped metrics
@@ -135,24 +139,17 @@ model/
   reasoner.py        recurrent attention module
   readout.py         answer-letter readout, gating, and residual correction
 features/            feature-bank readers
-configs/             alternative Python settings
-scripts/
-  run.sh             Docker launcher and job controls
-  lib/               signal handling and execution logs
-  data/              dataset preparation and audits
+run.sh               Docker launcher and job controls
+docker_job.sh        signal handling and execution logs
 tests/               numerical, training, and command tests
   reference/         historical implementations used for comparison
-docs/
-  plans/             proposed extensions
-  research/          experiment reports
 ```
 
 ## Dependencies
 
 Use Python 3.10 or newer with a suitable PyTorch CPU or CUDA installation.
-Install `requirements.txt` for training and evaluation,
-`requirements-data.txt` for dataset preparation, or `requirements-live.txt` for
-live NF4 inference.
+Install `requirements.txt` for training and evaluation, or
+`requirements-live.txt` for live NF4 inference.
 
 The Docker launcher defaults to the local RunPodML-derived image
 `bazza-cuda:local`. Build it from an available RunPodML base image before launching a job:
@@ -164,8 +161,7 @@ docker build -t bazza-cuda:local .
 ```
 
 The image installs the live-inference dependencies, including bitsandbytes.
-The image name is configurable through `BAZZA_IMAGE`. The tested environment is
-recorded in [implementation status](docs/REFACTOR_STATUS.md).
+The image name is configurable through `BAZZA_IMAGE`.
 
 Cached training requires an encoded data selection, a compatible feature bank,
 and pretrained answer-letter weights. The letter weights can be read from the
@@ -224,7 +220,7 @@ JSONL format. An unset URL disables remote logging.
 Check the configuration and available inputs without training:
 
 ```bash
-bash scripts/run.sh train \
+bash run.sh train \
   --config config.py \
   --env-file .env.local \
   --output-dir /path/to/new-run \
@@ -235,10 +231,10 @@ Remove `--plan-only` to train with a tqdm progress bar. Add `--detach` to run in
 the background. The launcher provides the following controls:
 
 ```bash
-bash scripts/run.sh train --output-dir /path/to/run --status
-bash scripts/run.sh train --output-dir /path/to/run --logs
-bash scripts/run.sh train --output-dir /path/to/run --stop
-bash scripts/run.sh train --config config.py --env-file .env.local \
+bash run.sh train --output-dir /path/to/run --status
+bash run.sh train --output-dir /path/to/run --logs
+bash run.sh train --output-dir /path/to/run --stop
+bash run.sh train --config config.py --env-file .env.local \
   --output-dir /path/to/run --resume --detach
 ```
 
@@ -266,7 +262,7 @@ trainer.train(train_batches, validation_batches)
 ## Evaluation
 
 ```bash
-bash scripts/run.sh evaluate \
+bash run.sh evaluate \
   --config /path/to/test-settings.py \
   --env-file .env.local \
   --checkpoint /path/to/run/checkpoint-step-N.pt \
@@ -312,14 +308,11 @@ Transformers AutoModel registration are not implemented.
 
 ```bash
 python -m unittest discover -s tests -v
-python -m unittest discover -s scripts/data -v
 ```
 
 The tests cover numerical agreement with reference implementations, optimizer
 updates, event ordering, checkpoint selection, training and evaluation resume,
-configuration portability, and dataset conversion. The cached retrain and
-external test results are reported in
-[the retrain report](docs/research/BAZZA_REFACTOR_RETRAIN_20261018.md).
+configuration portability, and input serialization.
 
 ## Code style
 

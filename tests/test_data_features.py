@@ -14,13 +14,7 @@ from model import Gemma4FeatureCache
 from utils import atomic_json, digest, file_hash
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "reference/legacy"))
-from architecture.data import identity_keys as old_keys
-from architecture.patch_when2call import added_candidate as old_candidate
 from gemma_decisions.pilot import encode as old_encode
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts/data"))
-from common import identity_keys
-from when2call_candidates import added_candidate
 
 
 class DataTests(unittest.TestCase):
@@ -44,7 +38,7 @@ class DataTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Invalid target distribution"):
                 collate_records([{**row, "target": invalid}])
 
-    def test_serializer_source_and_dataset_repairs_are_unchanged(self):
+    def test_serializer_matches_reference(self):
         from tokenizers import Tokenizer, models, pre_tokenizers
 
         alphabet = sorted(pre_tokenizers.ByteLevel.alphabet())
@@ -78,17 +72,6 @@ class DataTests(unittest.TestCase):
                     encode_input(unlabelled, tokenizer, 4096, order),
                     {k: v for k, v in expected.items() if k != "target"},
                 )
-        row = {
-            "id": "fixture-é",
-            "group_id": "g",
-            "state": {"question": "café", "tools": []},
-            "question": "décision?",
-            "options": ["oui", "non"],
-            "source": "fixture",
-        }
-        self.assertEqual(old_keys(row), identity_keys(row))
-        for policy in ["tool_call", "request_for_info", "cannot_answer", "direct"]:
-            self.assertEqual(old_candidate(policy, row), added_candidate(policy, row))
 
     def test_train_and_heldout_groups_must_not_overlap(self):
         with tempfile.TemporaryDirectory() as directory:
