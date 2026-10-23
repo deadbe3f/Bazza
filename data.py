@@ -109,7 +109,7 @@ def schema_key(row):
     data = fields(row)
     return data["task_key"] + "/" + data["balance_schema"]
 
-def encode(row, tokenizer, max_length, order=None):
+def encode_input(row, tokenizer, max_length, order=None):
     options = row["options"]
     if order is None:
         order = list(range(len(options)))
@@ -135,13 +135,21 @@ def encode(row, tokenizer, max_length, order=None):
         if not eligible:
             raise ValueError("Cannot locate option's final token")
         positions.append(eligible[-1])
-    target = [float(row["target"][i]) for i in order]
-    if len(target) != len(order) or min(target) < 0 or abs(sum(target) - 1) > 1e-4:
-        raise ValueError("Invalid target distribution")
     return {"id": row["id"], "group_id": row["group_id"], "source": row["source"],
             "kind": row["kind"], "ids": encoded.ids, "positions": positions,
-            "target": target, "order": order,
+            "order": order,
             **{**fields(row), "options": [str(options[i]) for i in order]}}
+
+def encode(row, tokenizer, max_length, order=None):
+    result = encode_input(row, tokenizer, max_length, order)
+    if result is None:
+        return None
+    target = [float(row['target'][i]) for i in result['order']]
+    if len(target) != len(result['order']) or min(target) < 0 or abs(sum(target) - 1) > 1e-4:
+        raise ValueError('Invalid target distribution')
+    result['target'] = target
+    return result
+
 
 def length_batches(records, max_rows, token_budget):
     """Bucket by length, bounding padded tokens without dropping long rows."""

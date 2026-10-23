@@ -6,6 +6,85 @@ module combines a bidirectional GRU, recurrent attention, and a gated pretrained
 readout to score the supplied options. Cached token representations can replace
 the backbone during training and evaluation.
 
+## Inference example
+
+Load a trained decision checkpoint and supply a state and named questions:
+
+```python
+from systemone import SystemOne
+
+model = SystemOne.from_checkpoint(
+    "weights/bazza.pt",                    # trained decision head
+    backbone_path="weights/Gemma4-12B-it",  # backbone weights and tokenizer
+    device="cuda",
+)
+
+result = model(
+    state={
+        "ticket": "Order #1182 arrived broken. The customer requests a refund.",
+        "order_age_days": 40,
+        "refund_policy_days": 30,
+    },
+    questions={
+        "refund": {
+            "type": "noul",
+            "instructions": "Is the refund allowed under the policy?",
+            "criteria": {
+                "true": "The refund is allowed by the stated policy.",
+                "false": "The refund is not allowed by the stated policy.",
+            },
+        },
+        "action": {
+            "type": "choice",
+            "instructions": "Select the next action using the stated policy.",
+            "criteria": {
+                "refund_order": "Issue a refund because the policy permits it.",
+                "explain_policy": "Explain that the order is outside the refund window.",
+                "ask_order_age": "Ask the order age because it is unknown.",
+            },
+        },
+    },
+)
+
+print(result["answers"]["refund"]["noul"])   # probability assigned to true
+print(result["answers"]["refund"]["value"])  # boolean decision
+print(result["answers"]["action"]["choice"]) # supplied candidate key
+print(result["answers"]["action"]["probabilities"])
+```
+
+The response has an `answers` mapping keyed by question name. `choice` preserves
+the supplied criterion key; `probabilities` maps every criterion key to its model
+softmax score. Boolean (`noul`) answers also provide `noul`, the probability of
+`true`, and a boolean `value`. Numeric `score` questions require numeric criterion
+keys and return their probability-weighted mean in `score` and `value`.
+
+Each question is serialized and scored separately, using the training prompt
+format and candidate order. No training targets, feature bank, data selection, or
+training configuration are required. Overlong inputs are rejected without
+truncation. `model.model` exposes the underlying PyTorch `Bazza` instance.
+This is a Python API using the System 1 request schema; no HTTP server is started.
+
+The complete example is in `examples/decision.py`, with an editable request in
+`examples/decision.json`. The CLI loads the same API and accepts a new request:
+
+```bash
+python demo.py \
+  --checkpoint /path/to/bazza.pt \
+  --backbone-path /path/to/Gemma4-12B-it \
+  --request examples/decision.json
+
+# Docker execution, durable response and job controls:
+bash scripts/run.sh demo --env-file .env.local \
+  --checkpoint /path/to/bazza.pt \
+  --backbone-path /path/to/Gemma4-12B-it \
+  --request examples/decision.json \
+  --output-dir /path/to/new-demo-output
+```
+
+The CLI prints the response JSON. With `--output-dir`, it also records the request,
+response, input identity, timing and status. A completed `--resume` returns the
+stored response without running inference again.
+
 ## Architecture
 
 The model takes a serialized request containing context, a question, and candidate
@@ -35,7 +114,9 @@ train.py             training entrypoint
 trainer.py           training loop and event dispatch
 callbacks.py         checkpointing, early stopping, and logging callbacks
 evaluate.py          evaluation and resumable prediction storage
-demo.py              single-example evaluation
+demo.py              load a model and answer a new JSON request
+systemone.py         state/questions decision API
+examples/            model-loading example and sample request
 data.py              input serialization, collation, and batching
 losses.py            hard- and soft-target cross-entropy
 metrics.py           accuracy, cross-entropy, and grouped metrics
@@ -47,7 +128,8 @@ logging_backend.py   local metrics and optional Overfit logging
 utils.py             file I/O, hashing, and precision utilities
 model/
   model.py           backbone and decision-module composition
-  backbone.py        live and cached backbone interfaces
+  backbone.py        generic output contract and feature-cache machinery
+  gemma_backbone.py  Gemma-specific loading, readout extraction and adapters
   gemma.py           standalone PyTorch Gemma backbone
   readers.py         token projection and bidirectional GRU
   reasoner.py        recurrent attention module
@@ -73,7 +155,15 @@ Install `requirements.txt` for training and evaluation,
 live NF4 inference.
 
 The Docker launcher defaults to the local RunPodML-derived image
-`bazza-cuda:local`. This image must be available before launching a job.
+`bazza-cuda:local`. Build it from an available RunPodML base image before launching a job:
+
+```bash
+docker build -t bazza-cuda:local .
+# Alternative local CUDA base:
+# docker build --build-arg BASE_IMAGE=your-cuda-image -t bazza-cuda:local .
+```
+
+The image installs the live-inference dependencies, including bitsandbytes.
 The image name is configurable through `BAZZA_IMAGE`. The tested environment is
 recorded in [implementation status](docs/REFACTOR_STATUS.md).
 
@@ -186,9 +276,8 @@ bash scripts/run.sh evaluate \
 
 Evaluation preserves candidate order and stores completed prediction batches in
 a journal. Resume validates the stored input identities and continues from the
-last committed batch. `demo` uses the same interface with an additional
-`--example-id ID` argument. Training, evaluation, and demo support the same
-launcher controls.
+last committed batch. `demo.py` accepts raw requests through `--request`; it does not run evaluation.
+Training, evaluation, and demo support the same launcher controls.
 
 ## Data and precision
 

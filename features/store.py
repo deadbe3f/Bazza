@@ -16,12 +16,14 @@ class FeatureStore:
         self.banks = {}
         self.normalization = None
         if self.kind in ("layer", "routed"):
-            if config.get("layer", "layer-48") != "layer-48":
-                raise ValueError("The current head provider expects raw final-layer states; use bank readers for fusion experiments")
+            if not config.get("layer"):
+                raise ValueError("Raw cache requires an explicit final layer")
             roots = config.get("banks", {"default": config.get("root")})
             self.roots = {k: Path(v) for k, v in roots.items()}
             manifests = [json.loads((root / "manifest.json").read_text()) for root in self.roots.values()]
             for manifest in manifests:
+                if manifest.get("final_layer", config["layer"]) != config["layer"]:
+                    raise ValueError("Final normalization requires the bank's final layer")
                 for name, value in manifest["backbone"].items():
                     if selection["identity"].get(name) != value:
                         raise ValueError("Feature backbone differs from selection: " + name)
@@ -72,14 +74,14 @@ class FeatureStore:
         key = component, bank_split
         if key not in self.banks:
             self.banks[key] = AddedLayerBank(self.roots[component] / bank_split,
-                [self.config.get("layer", "layer-48")], self.config.get("max_open_shards", 128))
+                [self.config["layer"]], self.config.get("max_open_shards", 128))
         bank = self.banks[key]
         expected = bank.records[row["id"]]
         for name in ("ids", "positions", "order", "target"):
             actual = row.get("_cache_target", row.get("target")) if name == "target" else row.get(name)
             if actual != expected.get(name):
                 raise ValueError("Cached input identity differs: " + row["id"] + "/" + name)
-        return bank.load(row["id"])[self.config.get("layer", "layer-48")]
+        return bank.load(row["id"])[self.config["layer"]]
 
     def prepare(self, rows, split):
         return collate_records(rows, [self._load(row, split) for row in rows])

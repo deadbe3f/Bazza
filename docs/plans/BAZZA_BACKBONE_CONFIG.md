@@ -63,3 +63,12 @@ prepared-data layout. No feature files, selections or weights are relocated.
 HF export continues to exclude all roots and local paths. Historical source and
 run records keep their original provenance; release packaging must select current
 code/artifacts rather than publishing those historical local records.
+
+## Backbone separation and inference API — 23 October 2026
+
+The generic output contract and cache classes are in `model/backbone.py`.
+Gemma-specific adapters and loading are in `model/gemma_backbone.py`; the
+standalone transformer remains in `model/gemma.py`. `systemone.py` provides the
+state/questions/criteria Python API, independent of training configuration or
+data selection. `demo.py` loads a model and processes a new JSON request, rather
+than selecting an evaluation example. See the root README and `examples/`.

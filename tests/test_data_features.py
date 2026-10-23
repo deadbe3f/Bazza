@@ -1,12 +1,11 @@
 """Serialization, labels, split ownership and raw-feature normalization contracts."""
-import inspect
 import json
 from pathlib import Path
 import sys
 import tempfile
 import unittest
 import torch
-from data import encode, load_selection
+from data import encode, encode_input, load_selection
 from features.bank import normalize_final
 from model import Gemma4FeatureCache
 from data import collate_records
@@ -36,7 +35,20 @@ class DataTests(unittest.TestCase):
                 collate_records([{**row, 'target':invalid}])
 
     def test_serializer_source_and_dataset_repairs_are_unchanged(self):
-        self.assertEqual(inspect.getsource(encode),inspect.getsource(old_encode))
+        from tokenizers import Tokenizer, models, pre_tokenizers
+        alphabet = sorted(pre_tokenizers.ByteLevel.alphabet())
+        tokenizer = Tokenizer(models.BPE(vocab={'[UNK]':0, **{c:i+1 for i,c in enumerate(alphabet)}},
+                                         merges=[], unk_token='[UNK]'))
+        tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+        for state in ['Context with punctuation: a = b + 2.', {'ticket':'café ☕','tools':[]}]:
+            raw = dict(id='unicode-é', group_id='g', state=state, question='Choose a value?',
+                       options=['oui', 'non', '日本語'], source='fixture', kind='choice', target=[0.,1.,0.])
+            for order in [None, [2,0,1]]:
+                expected = old_encode(raw,tokenizer,4096,order)
+                self.assertEqual(encode(raw,tokenizer,4096,order), expected)
+                unlabelled = {k:v for k,v in raw.items() if k!='target'}
+                self.assertEqual(encode_input(unlabelled,tokenizer,4096,order),
+                                 {k:v for k,v in expected.items() if k!='target'})
         row={'id':'fixture-é','group_id':'g','state':{'question':'café','tools':[]},
              'question':'décision?','options':['oui','non'],'source':'fixture'}
         self.assertEqual(old_keys(row),identity_keys(row))

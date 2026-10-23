@@ -1,7 +1,10 @@
 # Bazza contributor notes
 
 Bazza is a standalone System 1 decision model. Its backbone implementation is
-`model/gemma.py`; live inference must use that local module. Do not introduce
+`model/gemma.py`; live inference uses that local module through
+`model/gemma_backbone.py`. `model/backbone.py` contains only the generic contract
+and cache machinery. `systemone.py` exposes the raw-request inference API;
+`demo.py` demonstrates model loading and inference, independently of evaluation. Do not introduce
 external repository imports or a configurable external model-code path. Model
 weights and datasets are external assets selected through storage roots.
 

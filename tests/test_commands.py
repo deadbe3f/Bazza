@@ -46,7 +46,7 @@ config=Config(
 """)
         return root/'config.py'
 
-    def test_train_evaluate_demo_and_partial_journal_resume(self):
+    def test_train_evaluate_and_partial_journal_resume(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);config=self.fixture(root)
             args=Namespace(config=config,output_dir=root/'train',device='cpu',resume=False,initialize_from=None,plan_only=False,no_progress=True)
@@ -74,10 +74,6 @@ config=Config(
             ids=[p['id'] for line in (root/'test/predictions.jsonl').read_text().splitlines()
                  for p in json.loads(line)['predictions']]
             self.assertEqual(len(ids),len(set(ids)))
-            result=subprocess.run([sys.executable,'demo.py','--config',str(config),'--checkpoint',str(selected),
-                '--output-dir',str(root/'demo'),'--split','test','--example-id','12','--device','cpu','--no-progress'],capture_output=True,text=True)
-            self.assertEqual(result.returncode,0,result.stderr)
-            self.assertIn('"letter":',result.stdout)
             prior=(root/'test/predictions.jsonl').read_bytes()
             index=json.loads((root/'index.json').read_text());index['changed']=True;atomic_json(root/'index.json',index)
             with self.assertRaisesRegex(ValueError,'different evaluation'):evaluate(ev)

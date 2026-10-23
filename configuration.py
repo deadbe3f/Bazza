@@ -76,7 +76,7 @@ def make_model(config, selection, saved=None, *, backbone=None):
         artifact=torch.load(config.letter_readout_path,map_location='cpu',weights_only=True)
         weight,softcap=artifact['weight'],artifact['softcap']
     else:
-        from model.backbone import load_letters
+        from model.gemma_backbone import load_letters
         weight,readout=load_letters(config.backbone_path,selection['identity'])
         softcap=readout['softcap']
     if config.encoder_width != weight.shape[1] or config.softcap != softcap:
