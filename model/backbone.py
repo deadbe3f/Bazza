@@ -1,24 +1,11 @@
-"""Explicit Kiln adapter; never add a backbone directory to global sys.path."""
-import hashlib
-import importlib.util
+"""Live and cached backbones backed by the bundled standalone Gemma model."""
 from pathlib import Path
-import sys
 
 
-def load_kiln(directory):
-    source = Path(directory).resolve() / "model.py"
-    name = "_bazza_kiln_" + hashlib.sha256(str(source).encode()).hexdigest()[:16]
-    spec = importlib.util.spec_from_file_location(name, source)
-    if spec is None or spec.loader is None:
-        raise ImportError("Cannot load Kiln implementation: " + str(source))
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    try:
-        spec.loader.exec_module(module)
-    except BaseException:
-        sys.modules.pop(name, None)
-        raise
-    return module
+def load_gemma():
+    # Lazy import keeps cached training independent of live model construction.
+    from . import gemma
+    return gemma
 
 
 def load_letters(base, identity):
@@ -110,12 +97,11 @@ class Gemma4FeatureCache(FeatureCacheMixin, nn.Module):
 
 
 class Gemma4(nn.Module):
-    """Live, frozen Kiln Gemma. Unpadded forwards retain the audited batch policy."""
-    def __init__(self, weights=None, *, kiln_model_dir=None, quantization='bnb-nf4',
+    """Live, frozen Gemma. Unpadded forwards retain the audited batch policy."""
+    def __init__(self, weights=None, *, quantization='bnb-nf4',
                  selection=None, encoder=None):
         super().__init__()
         self.weights = Path(weights) if weights is not None else None
-        self.kiln_model_dir = Path(kiln_model_dir) if kiln_model_dir is not None else None
         self.quantization = quantization
         self.selection = selection or {}
         self.encoder = encoder.requires_grad_(False).eval() if encoder is not None else None
@@ -125,7 +111,7 @@ class Gemma4(nn.Module):
         from utils import file_hash
         if self.encoder is not None and self.weights is None:
             return {'injected_encoder':type(self.encoder).__qualname__}
-        return {str(path):file_hash(path) for path in (self.kiln_model_dir/'model.py',
+        return {str(path):file_hash(path) for path in (Path(__file__).with_name('gemma.py'),
                 self.weights/'tokenizer.json',self.weights/'config.json')}
 
     def prepare_batch(self, rows, split):
@@ -137,12 +123,15 @@ class Gemma4(nn.Module):
     def _load(self):
         if self.encoder is not None:
             return
-        implementation = load_kiln(self.kiln_model_dir)
+        implementation = load_gemma()
         expected = self.selection.get('identity',{})
         for name,value in (('checkpoint',implementation.CHECKPOINT),('revision',implementation.REVISION),
                            ('weight_sha256',implementation.WEIGHT_SHA256),('quantization',self.quantization)):
             if expected.get(name) != value:
                 raise ValueError('Live backbone differs from selection: '+name)
+        from utils import file_hash
+        if expected.get('implementation_sha256') is not None and expected['implementation_sha256'] != file_hash(Path(implementation.__file__)):
+            raise ValueError('Live backbone differs from selection: implementation_sha256')
         self.encoder = implementation.load_model(self.weights,device=self._device.device,
             quantization=self.quantization).requires_grad_(False).eval()
 

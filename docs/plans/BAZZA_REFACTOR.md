@@ -12,7 +12,7 @@ worktree, rather than a migration of the actively running checkout.
 - **KneeJerk:** the research repository and eventual agent application.
 - **Bazza:** our System One model, including its backbone and decision path.
 - **Groundbeef:** the versioned training/evaluation dataset.
-- **Kiln:** canonical, readable PyTorch backbone implementations and audits.
+- **Backbone:** standalone PyTorch model included in `model/gemma.py`.
 
 Build a small research repository that makes the model and training loop easy
 to read. The public training method is `Trainer.train()`. Use `evaluate.py`
@@ -58,7 +58,7 @@ from the training code.
 ## Model and data contracts
 
 `from model import Bazza, BazzaDecisionHead` is the public model import.
-`Bazza` composes the Kiln backbone and our head; `BazzaDecisionHead` is the
+`Bazza` composes the bundled backbone and decision head; `BazzaDecisionHead` is the
 standalone head corresponding to the legacy `GemmaDecisionHead`.
 
 Retain the current token serialization, final-token global seed, option-end
@@ -74,8 +74,8 @@ it does not create optimizers, read datasets or publish experiment logs.
 Metrics and losses use the same masks and target conventions in training,
 evaluation and demo inference.
 
-Import Kiln through an explicit adapter with an isolated module namespace.
-Do not mutate the global import path and accidentally resolve Kiln's `model`
+Import the bundled standalone backbone through a local package import.
+Do not mutate the global import path or resolve another repository's `model`
 module as Bazza's `model` package, or vice versa.
 
 Live frozen-backbone forwards remain the default. A cached-feature experiment,

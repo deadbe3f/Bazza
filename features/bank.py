@@ -6,7 +6,7 @@ import torch
 from utils import digest, file_hash
 
 def normalize_final(hidden, artifact):
-    """Kiln RMSNorm: stored weight is the effective multiplier, already converted."""
+    """Gemma RMSNorm: stored weight is the effective multiplier, already converted."""
     x = hidden.float()
     x = x * (x.square().mean(-1, keepdim=True) + artifact["eps"]).pow(-0.5)
     return (x * artifact["weight"].to(x.device).float()).to(hidden.dtype)

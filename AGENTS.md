@@ -1,9 +1,9 @@
 # Bazza contributor notes
 
-Bazza owns the standalone decision model, training, cached-feature adapters and
-evaluation. Groundbeef is the dataset. Kiln remains the optional external home
-of canonical PyTorch backbones. KneeJerk retains the broader research archive
-and application prototypes.
+Bazza is a standalone System 1 decision model. Its backbone implementation is
+`model/gemma.py`; live inference must use that local module. Do not introduce
+external repository imports or a configurable external model-code path. Model
+weights and datasets are external assets selected through storage roots.
 
 Each comparison must name the exact backbone/checkpoint and revision, data
 split, action schema, preprocessing, calibration split, hardware, and timing

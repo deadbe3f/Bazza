@@ -13,7 +13,7 @@ root = env_path('BAZZA_ROOT', repository_root / 'build')
 project_root = env_path('BAZZA_PROJECT_ROOT', repository_root.parent)
 data_root = env_path('BAZZA_DATA_ROOT', root / 'data')
 cache_root = env_path('BAZZA_CACHE_ROOT', root / 'features/bazza')
-model_root = env_path('BAZZA_MODEL_ROOT', project_root / 'Kiln/weights')
+model_root = env_path('BAZZA_MODEL_ROOT', root / 'weights')
 run_root = env_path('BAZZA_RUN_ROOT', root / 'training/bazza')
 
 config = Config(
@@ -26,7 +26,6 @@ config = Config(
     data_selection=env_path('BAZZA_SELECTION_PATH', data_root / 'groundbeef/v0.5/selection.json'),
     backbone_mode='cache',               # 'live' uses Gemma4; 'cache' uses Gemma4FeatureCache
     backbone_path=model_root / 'Gemma4-12B-it',
-    kiln_model_path=project_root / 'Kiln/models/gemma4_12b_pytorch',
     backbone_revision='707f0a3b8a3c7ad586ed01e27eafbad8a27dd0f7',
     quantization='bnb-nf4',
     feature_format='routed',              # 'pt', 'layer', or 'routed'

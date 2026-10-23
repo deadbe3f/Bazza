@@ -10,7 +10,7 @@ Usage: scripts/run.sh train|evaluate|demo --output-dir DIR [options]
   --config FILE.py            Python settings (default: config.py)
   --env-file FILE             Explicit trusted shell environment file
   --root DIR                  BAZZA_ROOT: runtime/artifact root
-  --project-root DIR          BAZZA_PROJECT_ROOT: parent containing Kiln
+  --project-root DIR          BAZZA_PROJECT_ROOT: optional project parent
   --data-root DIR             BAZZA_DATA_ROOT: prepared data
   --cache-root DIR            BAZZA_CACHE_ROOT: feature banks
   --model-root DIR            BAZZA_MODEL_ROOT: model weights
@@ -88,11 +88,11 @@ export BAZZA_ROOT="$(realpath -m -- "${BAZZA_ROOT:-$bazza_repo/build}")"
 export BAZZA_PROJECT_ROOT="$(realpath -m -- "${BAZZA_PROJECT_ROOT:-$(dirname -- "$bazza_repo")}")"
 export BAZZA_DATA_ROOT="$(realpath -m -- "${BAZZA_DATA_ROOT:-$BAZZA_ROOT/data}")"
 export BAZZA_CACHE_ROOT="$(realpath -m -- "${BAZZA_CACHE_ROOT:-$BAZZA_ROOT/features/bazza}")"
-export BAZZA_MODEL_ROOT="$(realpath -m -- "${BAZZA_MODEL_ROOT:-$BAZZA_PROJECT_ROOT/Kiln/weights}")"
+export BAZZA_MODEL_ROOT="$(realpath -m -- "${BAZZA_MODEL_ROOT:-$BAZZA_ROOT/weights}")"
 export BAZZA_RUN_ROOT="$(realpath -m -- "${BAZZA_RUN_ROOT:-$BAZZA_ROOT/training/bazza}")"
 export BAZZA_SELECTION_PATH="$(realpath -m -- "${BAZZA_SELECTION_PATH:-$BAZZA_DATA_ROOT/groundbeef/v0.5/selection.json}")"
 mkdir -p "$bazza_output"
-bazza_image="${BAZZA_IMAGE:-kiln-transformers-cuda:5.2}"
+bazza_image="${BAZZA_IMAGE:-bazza-cuda:local}"
 bazza_options=(--rm --init --name "$bazza_container" --user "$(id -u):$(id -g)" --network host)
 [[ "$bazza_detach" == 0 ]] || bazza_options+=(--detach)
 bazza_gpu=1

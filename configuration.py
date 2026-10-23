@@ -21,7 +21,7 @@ def load_config(path):
 
 def make_backbone(config, selection):
     if config.backbone_mode == 'live':
-        return Gemma4(config.backbone_path,kiln_model_dir=config.kiln_model_path,
+        return Gemma4(config.backbone_path,
                       quantization=config.quantization,selection=selection)
     return Gemma4FeatureCache(config.feature_cache_path,selection=selection,
         format=config.feature_format,banks=config.feature_banks,split_map=config.feature_split_map,

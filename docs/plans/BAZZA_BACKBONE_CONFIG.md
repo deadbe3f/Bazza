@@ -24,7 +24,7 @@ Other external schemas should get their own export adapter only when needed.
 
 ## Model interface
 
-- `Gemma4`: live frozen Kiln backbone; unpadded batch-one feature computation.
+- `Gemma4`: live frozen backbone implemented in `model/gemma.py`; unpadded batch-one feature computation.
 - `Gemma4FeatureCache`: an nn.Module using FeatureCacheMixin, no live model
   construction. Supports existing normalized per-example and raw/routed final
   layer banks. The cached raw final state receives the original RMSNorm once.

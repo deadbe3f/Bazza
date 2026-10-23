@@ -43,7 +43,9 @@ production code never imports those fixtures.
 
 ## Remaining limits
 
-- The live full-size 12B adapter has not received a real GPU parity run.
+- Live inference uses the bundled standalone `model/gemma.py`; no external model
+  repository is required. The complete live 12B path has not received a GPU parity
+  run as part of this change.
 - Live frozen backbone forwards remain unpadded batch one; larger batches are
   supported in the cached decision head.
 - Whole final-layer caching is supported; arbitrary cached prefixes and tap
@@ -54,3 +56,18 @@ production code never imports those fixtures.
 - Exact resume rejects changed source/config/runtime and moved asset identities;
   historical runs resume in their original checkout. No checkpoints are modified
   by this repository move.
+
+## Standalone backbone
+
+The standalone PyTorch Gemma implementation is included in `model/gemma.py`,
+byte-identical to the source used for the stored feature banks. The live adapter
+imports this local module lazily; cached training does not load it.
+The default launcher image is `bazza-cuda:local`. On the development machine this
+is an alias of the previously verified CUDA image, with identical binaries.
+
+The standalone correction passes 21 core tests and 24 dataset tests. The new
+checks instantiate and execute a reduced-size Gemma backbone through the local
+loader, compare its unpadded outputs with cached states, reject source identity
+mismatches, and confirm that the bundled file matches the feature-export source
+hash. The container mounts only this repository; no external code checkout or
+model weights are needed for these tests. This is not a full 12B GPU evaluation.

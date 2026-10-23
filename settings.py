@@ -14,7 +14,6 @@ class Config:
     run_root: Path | None = None
     backbone_mode: str = 'cache'
     backbone_path: Path | None = None
-    kiln_model_path: Path | None = None
     backbone_checkpoint: str = 'google/gemma-4-12B-it'
     backbone_revision: str | None = None
     quantization: str = 'bnb-nf4'
@@ -74,15 +73,15 @@ class Config:
         def path(value):
             return (Path(directory) / value).resolve() if value is not None else None
         values = {key:path(getattr(self,key)) for key in ('root','project_root','data_root','cache_root',
-                  'model_root','run_root','data_selection','backbone_path','kiln_model_path',
+                  'model_root','run_root','data_selection','backbone_path',
                   'feature_cache_path','letter_readout_path','test_config_path')}
         values['feature_banks'] = {name:path(value) for name,value in self.feature_banks.items()}
         values['feature_layers'] = tuple(self.feature_layers)
         result = replace(self, **values)
         if result.backbone_mode not in ('live','cache'):
             raise ValueError('backbone_mode must be live or cache')
-        if result.backbone_mode == 'live' and (result.backbone_path is None or result.kiln_model_path is None):
-            raise ValueError('Live Gemma needs backbone_path and kiln_model_path')
+        if result.backbone_mode == 'live' and result.backbone_path is None:
+            raise ValueError('Live Gemma needs backbone_path')
         if result.backbone_mode == 'cache':
             if result.feature_format not in ('pt','layer','routed'):
                 raise ValueError('feature_format must be pt, layer or routed')

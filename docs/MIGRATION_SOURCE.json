@@ -560,5 +560,13 @@
       "source_sha256": "8fcb86c758f4aec7477f9de78de6ecb9d9bc5711b80664ef4434108d173ea096",
       "imported_sha256": "8fcb86c758f4aec7477f9de78de6ecb9d9bc5711b80664ef4434108d173ea096"
     }
+  },
+  "bundled_backbone": {
+    "path": "model/gemma.py",
+    "source_file": "models/gemma4_12b_pytorch/model.py",
+    "sha256": "e6eef82665a55340ca62e248d7aa3502d196e45b5689ab2e754166c8b2cef2d0",
+    "modifications": "none",
+    "notice": "model/NOTICE.md",
+    "runtime_import": "model.gemma (local package)"
   }
 }

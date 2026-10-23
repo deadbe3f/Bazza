@@ -32,7 +32,7 @@ class PortablePathsTests(unittest.TestCase):
             self.assertEqual(config.data_root,clone/'build/data')
             self.assertEqual(config.data_selection,clone/'build/data/groundbeef/v0.5/selection.json')
             self.assertEqual(config.cache_root,clone/'build/features/bazza')
-            self.assertEqual(config.backbone_path,clone.parent/'Kiln/weights/Gemma4-12B-it')
+            self.assertEqual(config.backbone_path,clone/'build/weights/Gemma4-12B-it')
             self.assertEqual(config.overfit_url,'')
             for file in ('config.py','scripts/run.sh','.env.example'):
                 self.assertNotIn('/media/adrian', (ROOT/file).read_text())
@@ -46,7 +46,7 @@ class PortablePathsTests(unittest.TestCase):
                 config=load_config(ROOT/'config.py')
             self.assertEqual(config.data_selection,Path(values['BAZZA_SELECTION_PATH']))
             self.assertEqual(config.feature_banks['old'],Path(values['BAZZA_CACHE_ROOT'])/'groundbeef-v0.4/gemma4-12b-it-nf4-layer-taps')
-            self.assertEqual(config.kiln_model_path,Path(values['BAZZA_PROJECT_ROOT'])/'Kiln/models/gemma4_12b_pytorch')
+            self.assertNotIn('kiln_model_path', config.to_dict())
             self.assertEqual(config.overfit_url,'http://localhost:1234')
             self.assertNotIn(str(root),json.dumps(export_to_hf_config(config,include_training=True)))
             self.assertEqual(config.to_dict()['data_root'],values['BAZZA_DATA_ROOT'])

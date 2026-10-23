@@ -36,7 +36,7 @@ class BackboneTests(unittest.TestCase):
                 torch.save({'hidden':hidden[i,:len(row['ids'])]},root/row['cache'])
                 files[row['id']]={'file':row['cache'],'sha256':file_hash(root/row['cache'])}
             atomic_json(root/'index.json',{'files':files})
-            with patch('model.backbone.load_kiln',side_effect=AssertionError('Cache must not load Gemma weights')):
+            with patch('model.backbone.load_gemma',side_effect=AssertionError('Cache must not load Gemma weights')):
                 cached=Gemma4FeatureCache(root,selection={'identity':{},'splits':{'train':rows}},format='pt')
                 self.assertEqual(list(cached.parameters()),[])
                 foreign=cached.prepare_batch(rows,'train')

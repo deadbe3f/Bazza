@@ -1,240 +1,233 @@
 # Bazza
 
-Bazza is our System 1 decision model: a frozen backbone, token reader, recurrent
-workspace, and variable-option decision/readout head. Groundbeef is the dataset.
-Kiln owns the canonical readable PyTorch backbone implementations.
+Bazza is a System 1 decision model implemented in PyTorch. A frozen
+language-model backbone produces token representations. A trainable decision
+module combines a bidirectional GRU, recurrent attention, and a gated pretrained
+readout to score the supplied options. Cached token representations can replace
+the backbone during training and evaluation.
 
-## Code layout
+## Architecture
+
+The model takes a serialized request containing context, a question, and candidate
+answers. The decision module processes the backbone's token representations in
+four stages:
+
+1. Layer normalization and projection into the decision-module hidden dimension.
+2. A bidirectional GRU with a gated residual connection over the token sequence.
+3. A recurrent attention module initialized from the final context token and
+   candidate-token representations.
+4. A gated combination of decision logits and pretrained answer-letter logits,
+   with a learned residual correction to the final token representation.
+
+The default configuration uses a frozen Gemma 4 12B IT backbone, a hidden dimension
+of 1,024, four attention heads, two low-level updates per high-level cycle, and
+two high-level cycles. The number of candidate answers can vary from 2 to 26.
+Training updates the decision module while keeping the backbone frozen.
+
+`Gemma4` computes token representations from input tokens. `Gemma4FeatureCache`
+reads stored representations and applies the final RMSNorm when the stored
+features are unnormalized. Both implement the same `BackboneOutput` interface.
+
+## Repository structure
 
 ```text
-train.py             configure and launch training
-trainer.py           Trainer.train(), train_batch(), validate(), event dispatch
-callbacks.py         checkpoints, stopping, logging and training observations
-evaluate.py          fixed-panel evaluation with resumable prediction commits
-demo.py              inspect an example through the same model/input path
-data.py              named batches, unchanged prompt serialization and batching
-losses.py            explicit native/teacher target CE and fitted weights
-metrics.py           accuracy, CE and grouped reporting
-optimizers.py        existing Muon/AdamW implementation and parameter assignment
-config.py            editable Python values: paths, batch sizes, learning rates, etc.
-settings.py          Config object and explicit export_to_hf_config() adapter
-configuration.py     load settings, validate identities and assemble components
-logging_backend.py   durable JSONL and optional Overfit publishing
-utils.py             small IO, identity and precision helpers
+train.py             training entrypoint
+trainer.py           training loop and event dispatch
+callbacks.py         checkpointing, early stopping, and logging callbacks
+evaluate.py          evaluation and resumable prediction storage
+demo.py              single-example evaluation
+data.py              input serialization, collation, and batching
+losses.py            hard- and soft-target cross-entropy
+metrics.py           accuracy, cross-entropy, and grouped metrics
+optimizers.py        Muon and AdamW parameter groups
+config.py            Python experiment settings
+settings.py          Config dataclass and Hugging Face metadata export
+configuration.py     configuration loading and model construction
+logging_backend.py   local metrics and optional Overfit logging
+utils.py             file I/O, hashing, and precision utilities
 model/
-  model.py           Bazza and BazzaDecisionHead composition
-  readers.py         recurrent decision interface and token readers
-  reasoner.py        recurrent workspace and original small value decoder
-  readout.py         pretrained letters, request gate and residual answer adapter
-  backbone.py        Gemma4 / Gemma4FeatureCache, shared output and Kiln adapter
-features/            CPU feature-bank IO and raw-shard readers
-configs/             alternative Python settings files
+  model.py           backbone and decision-module composition
+  backbone.py        live and cached backbone interfaces
+  gemma.py           standalone PyTorch Gemma backbone
+  readers.py         token projection and bidirectional GRU
+  reasoner.py        recurrent attention module
+  readout.py         answer-letter readout, gating, and residual correction
+features/            feature-bank readers
+configs/             alternative Python settings
 scripts/
-  run.sh             common Docker job controls
-  lib/               signal forwarding and durable console/exit markers
-  data/              source-specific dataset preparation and audits
-tests/              focused parity, event, resume and command checks
-  reference/         frozen historical code used only by parity tests
-docs/plans/         future designs and agreed implementation plans
-docs/research/      historical measurements and run notes
+  run.sh             Docker launcher and job controls
+  lib/               signal handling and execution logs
+  data/              dataset preparation and audits
+tests/               numerical, training, and command tests
+  reference/         historical implementations used for comparison
+docs/
+  plans/             proposed extensions
+  research/          experiment reports
 ```
 
-The production core never imports the historical test references. All current model math and
-mixed-head state-dict names are retained. See [refactor status](docs/REFACTOR_STATUS.md)
-for verification scope and the historical checkpoint/resume boundary.
+## Dependencies
 
-This is the standalone model repository extracted from KneeJerk. The full research
-archive and application prototype remain there. Weights, datasets, feature banks
-and existing runs stay in their original storage locations; configure roots to
-use them. See [migration notes](docs/MIGRATION.md) for provenance and scope.
+Use Python 3.10 or newer with a suitable PyTorch CPU or CUDA installation.
+Install `requirements.txt` for training and evaluation,
+`requirements-data.txt` for dataset preparation, or `requirements-live.txt` for
+live NF4 inference.
 
-## Environment
+The Docker launcher defaults to the local RunPodML-derived image
+`bazza-cuda:local`. This image must be available before launching a job.
+The image name is configurable through `BAZZA_IMAGE`. The tested environment is
+recorded in [implementation status](docs/REFACTOR_STATUS.md).
 
-Use Python 3.10 or newer and install `requirements.txt` into your chosen PyTorch
-environment. Groundbeef source preparation additionally uses
-`requirements-data.txt`; live NF4 mode additionally uses `requirements-live.txt`.
-The existing Docker launcher uses the local
-RunPodML-derived `kiln-transformers-cuda:5.2` image; it must already be available.
-The verified runtime is recorded in `docs/REFACTOR_STATUS.md`.
+Cached training requires an encoded data selection, a compatible feature bank,
+and pretrained answer-letter weights. The letter weights can be read from the
+backbone checkpoint or supplied through `letter_readout_path`. Live inference uses the bundled standalone model in `model/gemma.py` and the
+weights specified by `backbone_path`. The backbone does not import Transformers
+or code from another repository.
 
-Cached training does not import or construct Kiln's live model. It needs an
-existing feature bank, encoded selection, and either the original pretrained
-letter rows (read from backbone weights) or an explicit `letter_readout_path`.
-Live mode additionally needs a Kiln checkout through `kiln_model_path`. A fresh
-clone does not download weights or prepared training data automatically.
+## Configuration
 
-## Python settings and model composition
-
-Edit `config.py` to change ordinary values. It contains a flat Python `Config`
-object, not model constructors or a nested JSON recipe:
+Experiment settings are Python values in `config.py`. Alternative settings files
+must export a `Config` instance named `config`:
 
 ```python
+from pathlib import Path
+from settings import Config
+
 config = Config(
     data_selection=Path("/path/to/selection.json"),
     backbone_mode="cache",
+    feature_format="layer",
+    feature_cache_path=Path("/path/to/features"),
+    letter_readout_path=Path("/path/to/letters.pt"),
     learning_rate=3e-5,
-    muon_learning_rate=.003,
+    muon_learning_rate=0.003,
     batch_size=32,
     epochs=1,
-    # ... data/cache locations and other settings
 )
 ```
 
-Model construction stays in the training code. `backbone_mode="live"` selects
-`Gemma4`; `"cache"` selects `Gemma4FeatureCache`. Both go through
-`Bazza.forward(batch)` and return the same `BackboneOutput` contract:
+Relative paths resolve against the settings file's directory. The training code
+constructs the model and optimizer from these values. Each run records the Python
+settings, resolved configuration, and source hashes.
 
-```python
-backbone = Gemma4FeatureCache(directory=cache_path, selection=selection)
-# Or: backbone = Gemma4(weights=weight_path, kiln_model_dir=kiln_path, selection=selection)
-model = Bazza(backbone=backbone, head=head)
-loader = BatchLoader(backbone.prepare_batch, device="cuda")
-trainer = Trainer(model, optimizer, loss_fn, scheduler, prepare_batch=loader)
-trainer.on("batch_start", log_batch_start)
-trainer.on("validation_end", stop_callback, key="early_stopping")
-trainer.train(train_batches, validation_batches)
-```
+The default configuration obtains storage locations from environment variables:
 
-The loader only collates and prefetches CPU inputs. Backbone execution and
-normalization belong to the model; the trainer has no live/cache branch.
-The cache class never constructs a live Gemma. `Bazza` checkpoints the head,
-referencing the frozen backbone by run identity. Whole-backbone final-layer
-replacement is implemented; cached prefixes and multi-tap fusion remain planned.
+| Variable | Launcher option | Default |
+| --- | --- | --- |
+| `BAZZA_ROOT` | `--root` | repository `build/` |
+| `BAZZA_PROJECT_ROOT` | `--project-root` | repository parent |
+| `BAZZA_DATA_ROOT` | `--data-root` | root `data/` |
+| `BAZZA_CACHE_ROOT` | `--cache-root` | root `features/bazza/` |
+| `BAZZA_MODEL_ROOT` | `--model-root` | root `weights/` |
+| `BAZZA_RUN_ROOT` | `--run-root` | root `training/bazza/` |
+| `BAZZA_SELECTION_PATH` | `--selection` | data root `groundbeef/v0.5/selection.json` |
 
-Callbacks are ordered functions/callable objects in an event-key registry.
-`on()` subscribes; `emit()` dispatches. Unknown names are errors. Training and
-validation produce batch/forward events with explicit stages. Stateful callbacks
-have stable keys. Checkpoint requests commit after all handlers at a boundary.
+Local settings can be placed in an ignored `.env.local` file and loaded explicitly
+with `--env-file .env.local`. Command-line root options override that file, which
+overrides inherited environment variables. Input directories are mounted
+read-only; the selected output directory is writable.
 
-Each run records `config-source.py`, `resolved-config.json`, and source/settings
-hashes. Python is the input; JSON records are generated outputs.
+Set `OVERFIT_URL` to enable Overfit logging. Metrics are also stored locally in
+JSONL format. An unset URL disables remote logging.
 
-```python
-from config import config, export_to_hf_config
+## Training
 
-metadata = export_to_hf_config(config)
-export_to_hf_config(config, "export/config.json")
-```
-
-The explicit HF adapter exports portable architecture metadata, with optional
-`include_training=True`. Local data/cache paths are excluded. It does not create
-weights, register an AutoModel, or provide from_pretrained support; a Transformers
-model/config adapter is separate release work. See the
-[HF custom-model contract](https://huggingface.co/docs/transformers/main/en/custom_models).
-
-## Portable locations
-
-The active configuration has no machine-specific paths. `config.py` derives
-locations from environment variables; `run.sh` forwards and mounts those roots.
-
-| Variable / launcher flag | Default |
-| --- | --- |
-| `BAZZA_ROOT` / `--root` | repository `build/` |
-| `BAZZA_PROJECT_ROOT` / `--project-root` | repository parent, containing Kiln |
-| `BAZZA_DATA_ROOT` / `--data-root` | root `data/` |
-| `BAZZA_CACHE_ROOT` / `--cache-root` | root `features/bazza/` |
-| `BAZZA_MODEL_ROOT` / `--model-root` | project root `Kiln/weights/` |
-| `BAZZA_RUN_ROOT` / `--run-root` | root `training/bazza/` |
-| `BAZZA_SELECTION_PATH` / `--selection` | data root `groundbeef/v0.5/selection.json` |
-
-The selection is an existing prepared input; training does not create it.
-The backbone source defaults to project root `Kiln/models/gemma4_12b_pytorch`.
-Model/cache relative names remain editable Python values in `config.py`.
-`OVERFIT_URL` is optional; an unset URL keeps logging local.
-
-Set environment variables directly, pass root flags, or copy `.env.example`
-to a Git-ignored `.env.local` and explicitly use `--env-file .env.local`.
-That file contains trusted shell assignments and is not loaded implicitly.
-Precedence is command-line roots, then an explicit env file, inherited environment,
-and finally defaults. Direct Python entrypoints use exported environment values;
-`--env-file` is a launcher option. Local resolved paths are recorded for run
-reproducibility, but the HF config export excludes them.
-
-The launcher mounts existing declared roots, the settings directory and the
-selection's directory read-only. Only the requested output directory is writable.
-It does not mount named local drives or create absent input roots. Put custom
-settings' inputs/checkpoints under the configured roots so they are visible in
-Docker. Historical research notes/snapshots retain their original provenance.
-
-## Commands and job controls
-
-Use the existing RunPodML-derived image (`kiln-transformers-cuda:5.2` by default).
-The default Python settings describe the prepared-data and cache layout. They
-do not download data, extract training features, or resume an old run automatically.
-Set the roots to existing inputs before using it.
+Check the configuration and available inputs without training:
 
 ```bash
 bash scripts/run.sh train \
   --config config.py \
   --env-file .env.local \
-  --output-dir /absolute/path/to/a/NEW/run --plan-only
-
-# Remove --plan-only to start, with foreground tqdm progress.
-# Add --detach to let Docker own the job independently of the terminal.
-bash scripts/run.sh train --output-dir /absolute/path/to/run --status
-bash scripts/run.sh train --output-dir /absolute/path/to/run --logs
-bash scripts/run.sh train --output-dir /absolute/path/to/run --stop
-bash scripts/run.sh train --config /absolute/path/to/settings.py \
-  --env-file .env.local --output-dir /absolute/path/to/run --resume --detach
+  --output-dir /path/to/new-run \
+  --plan-only
 ```
 
-Reuse the same roots/environment file when resuming.
-
-`--resume` restores the same model, optimizer, sample-based schedule, RNG, data
-cursor and callback state, and rejects changed source/data/config/runtime.
-`--initialize-from /path/to/checkpoint.pt` starts a fresh experiment using old
-weights; it does not restore optimizer or progress. Historical full-state runs
-must resume in their original checkout/snapshot. No checkpoint is migrated in place.
-
-Evaluation uses a configuration with the desired serialized selection and feature
-bank, and a named split. It preserves option order and resumes committed batches
-without duplicates. `demo` uses the same arguments plus `--example-id ID`.
+Remove `--plan-only` to train with a tqdm progress bar. Add `--detach` to run in
+the background. The launcher provides the following controls:
 
 ```bash
-bash scripts/run.sh evaluate --config /path/to/test-settings.py \
-  --checkpoint /path/to/run/checkpoint-step-N.pt \
-  --output-dir /path/to/NEW/test-output --split test
+bash scripts/run.sh train --output-dir /path/to/run --status
+bash scripts/run.sh train --output-dir /path/to/run --logs
+bash scripts/run.sh train --output-dir /path/to/run --stop
+bash scripts/run.sh train --config config.py --env-file .env.local \
+  --output-dir /path/to/run --resume --detach
 ```
 
-All three commands support the same launcher controls. Direct `python train.py`,
-`evaluate.py` and `demo.py` remain usable inside the configured container. Durable
-outputs include `status.json`, console/metrics logs, checkpoints or prediction
-journals, reports, timing and an exit code. An unavailable dashboard does not
-interrupt training. Metrics use `train/`, `validation/`, `validation-full/` and `test/`.
+Resume restores model parameters, optimizer and scheduler state, random-number
+state, callbacks, and the data cursor. It requires matching source, configuration,
+data, and runtime identities. `--initialize-from /path/to/checkpoint.pt` starts a
+new experiment from saved head weights without restoring optimizer state.
 
-An optional `test_config_path=Path("/path/to/test-settings.py")`
-setting runs the validation-selected best checkpoint after training. The
-checkpoint is selected by fixed-panel equal-track macro accuracy, then CE;
-keep the best three plus latest. Test scores never select weights.
+Checkpoints retain the latest state and the best three validation states by
+default. Selection uses equal-track macro accuracy, with macro-track
+cross-entropy as the tie-breaker. Setting `test_config_path` runs a separate test
+panel on the selected checkpoint after training.
 
-## Inputs and precision
+`Trainer` exposes `train()`, `train_batch()`, and `validate()`. Callbacks subscribe
+to named events, including batch boundaries, forward and backward passes,
+optimizer updates, validation, and checkpoint saves:
 
-A selection JSON contains `identity` and named `splits` of encoded records.
-The current Gemma serializer is unchanged; no choice shuffling or truncation
-is introduced here. Default `target_key="target"` preserves the existing
-native/teacher mixture. Alternative stored target fields must be explicitly
-selected and present; there is no fallback that calls teacher scores ground truth.
+```python
+trainer.on("batch_start", log_batch_start)
+trainer.on("after_backward", inspect_gradients)
+trainer.on("validation_end", stop_callback, key="early_stopping")
+trainer.train(train_batches, validation_batches)
+```
 
-Set `backbone_mode="cache"` with `feature_format="pt"`, `"layer"` or `"routed"`,
-or `backbone_mode="live"`. Raw final features receive the original RMSNorm once
-inside the cache backbone, outside head autocast. Cached batches are bound to
-the cache that prepared them. Live forwards retain unpadded batch one; head
-batches remain larger and length-budgeted, with bounded CPU prefetch. The cache
-adapter reads existing banks only; it does not silently export new features.
+## Evaluation
 
+```bash
+bash scripts/run.sh evaluate \
+  --config /path/to/test-settings.py \
+  --env-file .env.local \
+  --checkpoint /path/to/run/checkpoint-step-N.pt \
+  --output-dir /path/to/new-test-output \
+  --split test
+```
+
+Evaluation preserves candidate order and stores completed prediction batches in
+a journal. Resume validates the stored input identities and continues from the
+last committed batch. `demo` uses the same interface with an additional
+`--example-id ID` argument. Training, evaluation, and demo support the same
+launcher controls.
+
+## Data and precision
+
+A selection file contains backbone identity metadata and named splits of encoded
+records. Each record includes token IDs, candidate positions, candidate order,
+and a target distribution. `target_key` selects the stored target field; the
+loss accepts hard labels represented as one-hot vectors and soft teacher targets.
+
+Feature formats are per-example tensors (`pt`), raw layer shards (`layer`), and
+multiple feature banks with explicit record routing (`routed`). Raw final-layer
+features receive the stored final RMSNorm once, outside decision-module autocast.
+The current cache adapter supports the final layer, numbered 48 for this backbone.
+
+Live backbone execution uses unpadded single-example forwards. Decision-module
+batches are padded and bounded by a token budget. The default decision-module
+precision is BF16 autocast with FP32 GRU computation.
+
+## Configuration export
+
+```python
+from config import config
+from settings import export_to_hf_config
+
+export_to_hf_config(config, "export/config.json")
+```
+
+This exports architecture metadata without local storage paths. Optional
+`include_training=True` adds training hyperparameters. Weight export and
+Transformers AutoModel registration are not implemented.
 
 ## Verification
 
-CPU checks in the established image compare the old and new implementations,
-including exact keys, initialization, logits, CE, gradients, an optimizer update,
-callback order, resumed training and partial prediction-journal recovery.
-The miniature runs are correctness fixtures, not model-quality results.
-
 ```bash
-# Inside the existing container, with this repository as the working directory:
 python -m unittest discover -s tests -v
+python -m unittest discover -s scripts/data -v
 ```
 
-No weights, feature tensors, datasets or run output are committed. See
-[plans](docs/plans/README.md) for the proposed shared-backbone hybrid with the
-original autoregressive head. That hybrid is not implemented by this refactor.
+The tests cover numerical agreement with reference implementations, optimizer
+updates, event ordering, checkpoint selection, training and evaluation resume,
+configuration portability, and dataset conversion. The cached retrain and
+external test results are reported in
+[the retrain report](docs/research/BAZZA_REFACTOR_RETRAIN_20261018.md).
