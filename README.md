@@ -10,6 +10,14 @@ The current model combines a frozen Gemma 4 12B IT backbone with a trainable
 decision module: a bidirectional GRU, recurrent attention, and a gated pretrained
 readout. The backbone implementation is included in this repository.
 
+## Why a frozen backbone?
+
+Freezing the backbone preserves the pretrained model while allowing decision
+heads to be trained and replaced independently. Cached representations make head
+training inexpensive and enable rapid architecture experiments. Longer term,
+this provides a foundation for sharing one backbone between fast decisions and
+autoregressive planning or generation.
+
 ## Head-only adaptation
 
 Training updates the decision head while leaving all pretrained backbone weights
