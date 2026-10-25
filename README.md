@@ -110,25 +110,25 @@ Accuracy (%) on the same 13,499 public-benchmark requests for every model.
 MMLU-Pro uses a 2,000-example test subset. Bazza gain is relative to stock Gemma;
 positive values indicate an improvement in percentage points.
 
-| Benchmark | Examples | Stock Gemma 12B (NF4) | Bazza 12B (NF4) | Bazza gain (pp) | │ | [Winnow 12B (Q8)](https://huggingface.co/EldanRing/Winnow-12B/tree/b6ac22b0d51b69b18200acacb3fbdd98073fffe8) | [PPLX-Decider v1.1 27B (NF4)](https://huggingface.co/perplexity-ai/pplx-decider-v1.1-27b/tree/3b45dead91dfa6d95aad6b95764a606fab2bf7a6) |
-| --- | ---: | ---: | ---: | ---: | :---: | ---: | ---: |
-| When2Call (test) | 3,652 | 63.34 | 79.41 | +16.07 | │ | 83.19 | 74.70 |
-| ARC-Challenge (test) | 1,172 | 90.27 | 92.41 | +2.13 | │ | 94.88 | 97.18 |
-| ANLI round 3 (test) | 1,200 | 58.25 | 61.42 | +3.17 | │ | 62.17 | 70.17 |
-| WinoGrande (validation) | 1,267 | 71.82 | 71.43 | -0.39 | │ | 73.88 | 92.34 |
-| MMLU-Pro (test subset) | 2,000 | 44.00 | 48.30 | +4.30 | │ | 54.30 | 68.15 |
-| GSM8K, 4 choices | 1,319 | 50.87 | 62.32 | +11.45 | │ | 61.18 | 81.12 |
-| GSM8K, 10 choices | 1,319 | 24.34 | 43.97 | +19.64 | │ | 35.86 | 71.04 |
-| CRUXEval output choice | 570 | 56.67 | 55.44 | -1.23 | │ | 69.65 | 85.26 |
-| RAGTruth classification | 1,000 | 76.90 | 82.90 | +6.00 | │ | 82.60 | 88.40 |
-| **Eight-dataset macro** | — | **62.36** | **68.06** | **+5.70** | │ | **71.15** | **81.54** |
+| Benchmark | Examples | Stock Gemma 12B (NF4) | Bazza 12B (NF4) | Bazza gain (pp) | [Winnow 12B (Q8)](https://huggingface.co/EldanRing/Winnow-12B/tree/b6ac22b0d51b69b18200acacb3fbdd98073fffe8) | [PPLX-Decider v1.1 27B (NF4)](https://huggingface.co/perplexity-ai/pplx-decider-v1.1-27b/tree/3b45dead91dfa6d95aad6b95764a606fab2bf7a6) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| When2Call (test) | 3,652 | 63.34 | 79.41 | +16.07 | 83.19 | 74.70 |
+| ARC-Challenge (test) | 1,172 | 90.27 | 92.41 | +2.13 | 94.88 | 97.18 |
+| ANLI round 3 (test) | 1,200 | 58.25 | 61.42 | +3.17 | 62.17 | 70.17 |
+| WinoGrande (validation) | 1,267 | 71.82 | 71.43 | -0.39 | 73.88 | 92.34 |
+| MMLU-Pro (test subset) | 2,000 | 44.00 | 48.30 | +4.30 | 54.30 | 68.15 |
+| GSM8K, 4 choices | 1,319 | 50.87 | 62.32 | +11.45 | 61.18 | 81.12 |
+| GSM8K, 10 choices | 1,319 | 24.34 | 43.97 | +19.64 | 35.86 | 71.04 |
+| CRUXEval output choice | 570 | 56.67 | 55.44 | -1.23 | 69.65 | 85.26 |
+| RAGTruth classification | 1,000 | 76.90 | 82.90 | +6.00 | 82.60 | 88.40 |
+| **Eight-dataset macro** | — | **62.36** | **68.06** | **+5.70** | **71.15** | **81.54** |
 
 GSM8K and CRUXEval use adapted multiple-choice formats; RAGTruth uses binary
 response-level classification accuracy. The macro weights eight datasets equally,
 combining the two GSM8K views first; they share the same 1,319 source problems.
 
 Bazza uses the frozen [Gemma 4 12B IT backbone](https://huggingface.co/google/gemma-4-12B-it/tree/707f0a3b8a3c7ad586ed01e27eafbad8a27dd0f7)
-and the Groundbeef v0.5 Dataset head checkpoint at step 2,661 (80,019 training examples),
+and the head checkpoint trained on Groundbeef v0.5 at step 2,661 (80,019 training examples),
 selected on validation. Stock Gemma uses its original answer-letter weights and
 softcapping on the same cached features and prompts as Bazza. The head adds
 **16.07 percentage points on When2Call** and **4.30 points on MMLU-Pro**; WinoGrande
@@ -140,6 +140,10 @@ measurements, not official Decision Index scores or generative benchmark results
 
 ## Training and evaluation
 
+Groundbeef is our internally curated training dataset: a mixture of existing
+source datasets with our preprocessing and data splits. It is not included in
+this repository and may be released separately in the future.
+
 Learning rates, batch sizes, data locations, and model settings are Python values
 in [config.py](config.py). Alternative settings files export a `Config` instance
 named `config`. Relative paths resolve against the settings file's directory;
@@ -148,6 +152,7 @@ the default settings also accept `BAZZA_*` storage roots from the environment.
 Training requires a prepared data selection. With `backbone_mode="cache"`, stored
 token representations replace the frozen backbone, allowing the decision module
 to train without recomputing them.
+
 ```bash
 python train.py --config config.py --output-dir outputs/train --plan-only
 python train.py --config config.py --output-dir outputs/train
