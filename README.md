@@ -1,7 +1,6 @@
 # Bazza
 
-**Version: 0.1.0-alpha.1 — Experimental.** API and checkpoint formats may change.
-The repository version is recorded in [VERSION](VERSION).
+**Version: [0.3.0](VERSION)**
 
 Bazza is a System 1 decision model implemented in PyTorch. It specializes a
 frozen language model by training a separate decision head. Given a state and
