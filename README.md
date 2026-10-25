@@ -36,19 +36,17 @@ repository root:
 pip install -r requirements.txt
 ```
 
-Inference requires a trained Bazza head checkpoint and matching backbone weights
-and tokenizer. Replace the paths below with their local locations.
+The published head is available at [0xdeadbe3f/Bazza](https://huggingface.co/0xdeadbe3f/Bazza).
+The loader downloads the head and its exact Gemma backbone revision into the
+Hugging Face cache. The original BF16 backbone download is substantially larger
+than the 115 MiB head; inference quantizes its linear weights to NF4 on CUDA.
 
 ## Usage
 
 ```python
 from systemone import SystemOne
 
-model = SystemOne.from_checkpoint(
-    "weights/bazza.pt",
-    backbone_path="weights/Gemma4-12B-it",
-    device="cuda",
-)
+model = SystemOne.from_pretrained("0xdeadbe3f/Bazza", revision="0.5.0")
 
 result = model(
     state={
@@ -83,8 +81,17 @@ print(result["answers"]["action"]["choice"])         # selected criterion key
 print(result["answers"]["action"]["probabilities"])  # scores for all candidates
 ```
 
-[decision.py](decision.py) is the runnable example. Set `BAZZA_CHECKPOINT` and
-`BAZZA_BACKBONE_PATH` to your weights, then run `python decision.py`.
+Use `backbone_path="/path/to/Gemma4-12B-it"` to reuse local backbone weights.
+For offline loading, provide a local head release directory and backbone path,
+with `local_files_only=True`. Loading uses this repository's PyTorch code;
+Transformers `AutoModel` integration is not required or provided.
+
+Existing training checkpoints can still be loaded with
+`SystemOne.from_checkpoint("weights/bazza.pt", backbone_path="weights/Gemma4-12B-it")`.
+
+[decision.py](decision.py) is the runnable local-checkpoint example. Set
+`BAZZA_CHECKPOINT` and `BAZZA_BACKBONE_PATH` to your weights, then run
+`python decision.py`.
 
 ### Output types
 
@@ -146,29 +153,29 @@ Groundbeef is our internally curated training dataset: a mixture of existing
 source datasets with our preprocessing and data splits. It is not included in
 this repository and may be released separately in the future.
 
-Learning rates, batch sizes, data locations, and model settings are Python values
-in [config.py](config.py). Alternative settings files export a `Config` instance
-named `config`. Relative paths resolve against the settings file's directory;
-the default settings also accept `BAZZA_*` storage roots from the environment.
+Edit [config.py](config.py) to set the learning rates, batch sizes, data selection,
+and model locations. Settings are Python values. Use `backbone_mode="live"` with
+local backbone weights, or `backbone_mode="cache"` with prepared token features.
+The data selection must contain the requested training, validation, or test splits.
 
-Training requires a prepared data selection. With `backbone_mode="cache"`, stored
-token representations replace the frozen backbone, allowing the decision module
-to train without recomputing them.
+Run directly from the repository root:
 
 ```bash
-python train.py --config config.py --output-dir outputs/train --plan-only
 python train.py --config config.py --output-dir outputs/train
 
-python evaluate.py --config test_config.py \
+# Resume the same training run.
+python train.py --config config.py --output-dir outputs/train --resume
+
+# Evaluate a saved checkpoint using the configured test split.
+python evaluate.py --config config.py \
   --checkpoint outputs/train/checkpoint-step-N.pt \
   --output-dir outputs/test --split test
 ```
 
-Training shows a progress bar and writes metrics and checkpoints to the output
-directory. `--resume` restores optimizer, schedule, random state, callbacks, and
-the data cursor for the same run. The latest checkpoint and best three validation
-checkpoints are retained by default. Set `OVERFIT_URL` in the default settings to
-publish metrics to Overfit & Chill.
+Training displays a progress bar and saves metrics and checkpoints in the output
+directory. Resume restores optimizer, schedule, random state, and data position.
+The latest checkpoint and best three validation checkpoints are retained by
+default. Set `OVERFIT_URL` to send metrics to Overfit & Chill.
 
 ## Implementation
 

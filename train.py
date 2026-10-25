@@ -1,4 +1,4 @@
-"""Train Bazza from Python settings; run.sh manages Docker job lifetime."""
+"""Train Bazza from Python settings."""
 
 import argparse
 import json

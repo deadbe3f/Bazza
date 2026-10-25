@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import torch
+from safetensors.torch import save_file
 from tokenizers import Tokenizer, models, pre_tokenizers
 
 from data import encode
@@ -233,6 +234,95 @@ class SystemOneTests(unittest.TestCase):
             torch.save(saved, checkpoint)
             with self.assertRaisesRegex(ValueError, "identity differs"):
                 SystemOne.from_checkpoint(checkpoint, backbone_path=root, device="cpu")
+
+    def test_hub_release_downloads_pinned_backbone_and_preserves_outputs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            release, backbone = root / "release", root / "backbone"
+            release.mkdir()
+            backbone.mkdir()
+            self.api.tokenizer.save(str(backbone / "tokenizer.json"))
+            save_file(self.api.model.head.state_dict(), release / "model.safetensors")
+            metadata = dict(
+                model_type="bazza",
+                format_version=1,
+                config=dict(
+                    backbone_checkpoint=gemma.CHECKPOINT,
+                    backbone_revision=gemma.REVISION,
+                    encoder_width=16,
+                    hidden_width=8,
+                    attention_heads=2,
+                    low_steps=1,
+                    high_cycles=1,
+                    gate_width=4,
+                    adapter_rank=2,
+                    softcap=30,
+                    quantization="nf4",
+                    precision="fp32",
+                ),
+                readout={"softcap": 30},
+                identity={
+                    "readout_files": {
+                        "tokenizer.json": file_hash(backbone / "tokenizer.json")
+                    }
+                },
+                weights={"sha256": file_hash(release / "model.safetensors")},
+            )
+            atomic_json(release / "config.json", metadata)
+
+            with (
+                patch(
+                    "huggingface_hub.snapshot_download",
+                    side_effect=[str(release), str(backbone)],
+                ) as download,
+                patch(
+                    "model.gemma.load_model",
+                    return_value=self.api.model.backbone.encoder,
+                ),
+            ):
+                loaded = SystemOne.from_pretrained(
+                    "example/Bazza",
+                    revision="0.5.0",
+                    cache_dir=root / "cache",
+                    local_files_only=True,
+                    device="cpu",
+                )
+                self.assertEqual(loaded(**request()), self.api(**request()))
+                head_call, backbone_call = download.call_args_list
+                self.assertEqual(head_call.kwargs["repo_id"], "example/Bazza")
+                self.assertEqual(head_call.kwargs["revision"], "0.5.0")
+                self.assertEqual(backbone_call.kwargs["repo_id"], gemma.CHECKPOINT)
+                self.assertEqual(backbone_call.kwargs["revision"], gemma.REVISION)
+                for call in download.call_args_list:
+                    self.assertTrue(call.kwargs["local_files_only"])
+                    self.assertEqual(call.kwargs["cache_dir"], root / "cache")
+
+            with (
+                patch("huggingface_hub.snapshot_download") as download,
+                patch(
+                    "model.gemma.load_model",
+                    return_value=self.api.model.backbone.encoder,
+                ),
+            ):
+                loaded = SystemOne.from_pretrained(
+                    release, backbone_path=backbone, device="cpu", local_files_only=True
+                )
+                self.assertEqual(loaded(**request()), self.api(**request()))
+                download.assert_not_called()
+
+            metadata["config"]["backbone_revision"] = "wrong"
+            atomic_json(release / "config.json", metadata)
+            with patch("huggingface_hub.snapshot_download") as download:
+                with self.assertRaisesRegex(ValueError, "identity differs"):
+                    SystemOne.from_pretrained(release, device="cpu")
+                download.assert_not_called()
+
+            with (release / "model.safetensors").open("ab") as stream:
+                stream.write(b"corrupted")
+            with patch("huggingface_hub.snapshot_download") as download:
+                with self.assertRaisesRegex(ValueError, "SHA-256 mismatch"):
+                    SystemOne.from_pretrained(release, device="cpu")
+                download.assert_not_called()
 
     def test_demo_runs_new_request_and_resumes_completed_response(self):
         with tempfile.TemporaryDirectory() as directory:

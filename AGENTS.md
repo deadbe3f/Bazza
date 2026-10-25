@@ -24,25 +24,25 @@ Do not rewrite source files belonging to an active hash-pinned experiment.
 Preserve historical checkpoints and source identities; incompatible changes need
 a fresh run directory.
 
-## Long-running job controls
+## Repository boundaries
 
-All new or updated training, evaluation and data-preparation launchers must
-support foreground progress by default, optional `--detach`, `--stop`, `--resume`,
-`--logs` and `--status`. Resume must preserve exact committed progress and reject
-incompatible inputs/configuration. Training restores optimizer, schedule, RNG
-and data cursor; evaluation/data prep resumes completed requests/shards without
-duplicates. Keep durable status, logs, timing and exit markers in a known job
-directory. Docker owns detached job lifetime; do not use host nohup watchers.
-Use `docker_job.sh` for signal forwarding and durable console/exit
-markers where applicable. Never silently overwrite previous run directories.
+Public commands are train.py, evaluate.py, demo.py, and decision.py. Keep shell
+launchers, Docker job lifecycle controls, monitoring, and storage orchestration
+outside this model repository, in the parent project. Do not add run.sh or
+similar wrappers here. Training and evaluation own their checkpoints, resume
+state, metrics, and progress output; callers own process lifetime.
+
+Research plans, personal experiment notes, dataset-construction scripts, and
+one-off tools belong in the research project, not this public repository.
+Document public usage and training examples in README.md.
 
 ## Current organization
 
 New code uses the public root entrypoints, `model/`, and `features/`. Do not
 import `tests/reference/legacy` into the core. Those byte-identical source files are test-only comparison fixtures; old runs
-resume in their original research checkout. Use the shared Docker job launcher
-for new long runs. Keep research plans, experiment reports, dataset construction,
-and one-off tools in the research repository, outside this standalone model repo.
+resume in their original research checkout. Keep research plans, experiment
+reports, dataset construction, and one-off tools in the research repository,
+outside this standalone model repo.
 
 Training settings are authored as Python `Config` values in config.py (or
 an alternative .py settings file). Model construction remains in training code.
@@ -50,10 +50,10 @@ Use explicit export adapters for external schemas, e.g. export_to_hf_config;
 do not make an external config object the internal training contract. Name
 backbone classes Gemma4 and Gemma4FeatureCache, without a _12B suffix.
 
-Active config/launchers must use BAZZA_* roots rather than machine-specific
+Active configuration must use BAZZA_* roots rather than machine-specific
 paths. Keep local overrides in an explicitly loaded, Git-ignored .env.local.
-Forward declared roots into containers, mount inputs read-only, and never
-create missing input roots as a side effect of Docker bind mounts.
+External container launchers should mount inputs read-only and never create
+missing input roots as a side effect of Docker bind mounts.
 
 Entrypoints expose `main(args)`. Parse CLI arguments inside the
 `if __name__ == "__main__":` block, then call `main(args)`.

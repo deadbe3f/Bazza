@@ -124,9 +124,76 @@ class SystemOne:
         Training data, feature caches and experiment configuration files are not
         required. Architecture settings are read from the checkpoint itself.
         """
+        saved = torch.load(Path(checkpoint), map_location="cpu", weights_only=True)
+        return cls._from_saved(
+            saved, backbone_path=backbone_path, device=device, max_length=max_length
+        )
+
+    @classmethod
+    def from_pretrained(
+        cls,
+        model_id,
+        *,
+        revision=None,
+        backbone_path=None,
+        cache_dir=None,
+        token=None,
+        local_files_only=False,
+        device="cuda",
+        max_length=4096,
+    ):
+        """Load a head release and its pinned backbone from the Hugging Face Hub.
+
+        A local release directory and optional local backbone path also work.
+        Downloaded Python code is never executed; use this installed implementation.
+        """
+        from huggingface_hub import snapshot_download
+        from safetensors.torch import load_file
+
+        download_options = dict(
+            cache_dir=cache_dir, token=token, local_files_only=local_files_only
+        )
+        directory = Path(model_id).expanduser()
+        if not directory.is_dir():
+            directory = Path(
+                snapshot_download(
+                    repo_id=str(model_id),
+                    revision=revision,
+                    allow_patterns=["config.json", "model.safetensors"],
+                    **download_options,
+                )
+            )
+
+        saved = json.loads((directory / "config.json").read_text())
+        if saved.get("model_type") != "bazza" or saved.get("format_version") != 1:
+            raise ValueError("Unsupported Bazza head release format")
+        weight_path = directory / "model.safetensors"
+        expected_hash = saved.get("weights", {}).get("sha256")
+        if (
+            not isinstance(expected_hash, str)
+            or file_hash(weight_path) != expected_hash
+        ):
+            raise ValueError("Bazza head weight SHA-256 mismatch")
+        saved["head"] = load_file(str(weight_path), device="cpu")
+        config, _ = _checkpoint_settings(saved)
+
+        if backbone_path is None:
+            backbone_path = snapshot_download(
+                repo_id=config["backbone_checkpoint"],
+                revision=config["backbone_revision"],
+                allow_patterns=["config.json", "tokenizer.json", "model.safetensors"],
+                **download_options,
+            )
+
+        return cls._from_saved(
+            saved, backbone_path=backbone_path, device=device, max_length=max_length
+        )
+
+    @classmethod
+    def _from_saved(cls, saved, *, backbone_path, device, max_length):
+        """Construct inference modules from validated checkpoint metadata."""
         from model import gemma
 
-        saved = torch.load(Path(checkpoint), map_location="cpu", weights_only=True)
         config, state = _checkpoint_settings(saved)
         weights = Path(backbone_path).expanduser().resolve()
         tokenizer = _load_tokenizer(saved, weights)
