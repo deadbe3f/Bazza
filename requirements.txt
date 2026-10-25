@@ -4,3 +4,4 @@ numpy
 safetensors
 tokenizers
 tqdm
+bitsandbytes==0.50.2

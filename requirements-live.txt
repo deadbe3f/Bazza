@@ -1,3 +1,0 @@
--r requirements.txt
-# Required by the current live bitsandbytes NF4 path, not cached training.
-bitsandbytes==0.50.2

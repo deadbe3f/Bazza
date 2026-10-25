@@ -46,7 +46,7 @@ def _checkpoint_settings(saved):
 
         if find_spec("bitsandbytes") is None:
             raise RuntimeError(
-                "Live bnb-nf4 inference requires bitsandbytes; install requirements-live.txt or build the Bazza Docker image"
+                "NF4 inference requires bitsandbytes; install requirements.txt or build the Bazza Docker image"
             )
 
     return config, state
